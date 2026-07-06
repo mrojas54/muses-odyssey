@@ -132,6 +132,7 @@
   .opt:disabled{cursor:default;}
   .truth{display:none; margin-top:4px; padding:13px 15px; border-left:3px solid var(--gold); background:#fbf4e3; border-radius:0 8px 8px 0; font-size:15px; color:var(--soft);}
   .truth b{color:var(--ink);} .truth.show{display:block; animation:fade .3s ease;}
+  .examsrc{margin-top:10px; color:var(--gold); font-size:12px; letter-spacing:1px; text-transform:uppercase;}
   @keyframes fade{from{opacity:0; transform:translateY(-3px);} to{opacity:1;}}
   #verdict{display:none; text-align:center; background:var(--wine); color:#fbeede; border-radius:16px; padding:28px 22px; margin-top:8px;}
   #verdict.show{display:block; animation:fade .4s ease;}
@@ -1596,12 +1597,14 @@ function showHome(){
   const authoredAll = PLAN.filter(p=>authored(p.id)).length;
   const readAll = PLAN.filter(p=>isRead(p.id)).length;
   const threadCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].threads||[]).length), 0);
+  const examCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].quiz||[]).length), 0);
   let h='';
   const missCount = allMisses().length;
   h += `<div class="progress">${authoredAll} of 48 books on the loom · ${readAll} read</div>`;
   h += `<div class="progbar"><i style="width:${(authoredAll/48*100).toFixed(1)}%"></i></div>`;
-  if(threadCount || missCount){
+  if(examCount || threadCount || missCount){
     h += `<div class="homeacts">`;
+    if(examCount)   h += `<button onclick="showExam()">◈ The Grand Examination (${examCount}) →</button>`;
     if(threadCount) h += `<button onclick="showThreads()">✦ The woven threads (${threadCount}) →</button>`;
     if(missCount)   h += `<button onclick="showReview()">↺ Re-walk the missed omens (${missCount}) →</button>`;
     h += `</div>`;
@@ -1631,7 +1634,9 @@ function showThreads(){
   current=null;
   localStorage.removeItem('loom.last');
   document.getElementById('topbar').innerHTML =
-    `<div class="grp"><button onclick="showHome()">✦ All Books</button></div>`+
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showReview()">Review</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
     `<div class="grp"><button class="active" disabled>The woven threads</button></div>`;
   let h = `<div class="crown">◈ The Loom remembers ◈</div><h1>The Woven Threads</h1>`+
           `<div class="sub">how each book ties back into the ones before — and forward into the ones to come</div>`+
@@ -1669,7 +1674,8 @@ function showReview(){
   localStorage.removeItem('loom.last');
   document.getElementById('topbar').innerHTML =
     `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
-      `<button onclick="showThreads()">Threads</button></div>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
     `<div class="grp"><button class="active" disabled>Re-walking the missed</button></div>`;
   const items = allMisses();
   let h = `<div class="crown">◈ The Loom keeps its frayed strands ◈</div><h1>The Missed Omens</h1>`+
@@ -1753,6 +1759,7 @@ function topbar(id){
       `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button>`+
       `<button onclick="showThreads()">Threads</button>`+
       `<button onclick="showReview()">Review</button>`+
+      `<button onclick="showExam()">Examination</button>`+
     `</div>`+
     `<div class="grp"><span class="pos">${p.short} · Book ${p.n}</span>`+
       `<button class="readtoggle${read?' on':''}" onclick="toggleRead('${id}')">${read?'✓ Read':'Mark read'}</button>`+
@@ -1871,6 +1878,99 @@ function reveal(score,total,stats,missArr){
   const order=['event','meaning','thread'];
   const bd = order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
   document.getElementById('breakdown').innerHTML = bd;
+  v.classList.add('show'); v.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- THE GRAND EXAMINATION (every authored book, one cumulative sitting) ---- */
+/* Pool every quiz omen across all authored books, each tagged with its source book
+   so a miss/mend can flow back into the per-book Review loop. */
+function examPool(){
+  const out=[];
+  ORDER.filter(authored).forEach(id=>{
+    const d=window.LOOM_DATA[id];
+    (d.quiz||[]).forEach((item,qi)=> out.push({srcId:id, qi, item}));
+  });
+  return out;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+function showExam(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showReview()">Review</button></div>`+
+    `<div class="grp"><button class="active" disabled>The Grand Examination</button></div>`;
+  const pool = shuffle(examPool());
+  const total = pool.length;
+  let h = `<div class="crown">◈ Every thread drawn taut ◈</div><h1>The Grand Examination</h1>`+
+          `<div class="sub">all ${total} omens from the books you have walked, gathered into one reckoning</div>`+
+          `<div class="meta">the Fates weigh every book at once — no book announced, the thread alone must tell</div>`;
+  if(!total){
+    h += `<div class="empty">No omens to sit yet. Author a book with a <i>quiz</i> and the examination opens.</div>`+
+         `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+    document.getElementById('view').innerHTML=h; window.scrollTo({top:0,behavior:'smooth'}); return;
+  }
+  const best=bestScore('exam');
+  h += `<div class="priorscore">${best!=null?`Your best reckoning across all books: ${best} / ${total}`:'Not yet sat in full.'}</div>`;
+  h += `<div class="divider">❧ · ❧ · ❧</div>`;
+  h += `<div class="tally" id="tally">${total} omens to read · none yet turned</div><div id="exam"></div>`;
+  h += `<div id="verdict"><div class="crown" style="color:#e8c79a;">The Fates Render Full Judgment</div><div class="score" id="scoreNum"></div><div class="vline" id="vLine"></div><div class="breakdown" id="breakdown"></div><div class="small">Tap a truth to read it · every book at once</div><button onclick="showExam()">Sit the full reckoning again</button></div>`;
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button><button onclick="showReview()">Review</button></div>`;
+  document.getElementById('view').innerHTML=h;
+  buildExam(pool);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function buildExam(items){
+  const box=document.getElementById('exam');
+  const total=items.length; let answered=0, score=0;
+  const stats={};  // kind -> {c,t}
+  items.forEach(({item})=>{ const k=item.kind||'event'; (stats[k]=stats[k]||{c:0,t:0}).t++; });
+  items.forEach(({srcId,qi,item},idx)=>{
+    const card=document.createElement('div'); card.className='q';
+    const k=item.kind||'event'; const ki=KIND[k]||KIND.event;
+    card.innerHTML=
+      `<div class="qhead"><span class="qn">Omen ${idx+1} of ${total}</span>`+
+      `<span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth';
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; clearMiss(srcId,qi); }
+        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+              saveMiss(srcId, Array.from(new Set([...priorMiss(srcId), qi])).sort((a,b)=>a-b)); }
+        /* source book stays hidden until answered, then revealed with the truth */
+        truth.innerHTML = item.truth + `<div class="examsrc">— ${label(srcId)}${item.n?` · ${item.n}`:''}</div>`;
+        truth.classList.add('show'); answered++;
+        document.getElementById('tally').textContent=`Omens read · ${answered} of ${total}`;
+        if(answered===total) examReveal(score,total,stats);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); box.appendChild(card);
+  });
+}
+
+function examReveal(score,total,stats){
+  saveScore('exam',score);
+  const v=document.getElementById('verdict');
+  document.getElementById('scoreNum').textContent=`${score} / ${total}`;
+  const pct=score/total; let line;
+  if(pct===1) line="Every thread runs golden across all the books. The whole tale lives in you — the Fates fall silent, and that silence is the highest praise.";
+  else if(pct>=0.85) line="The weave holds bright end to end. A strand or two slipped, but the epic is yours.";
+  else if(pct>=0.7) line="The weave holds. The great shape of the war is in you; the finer turns still settling — gather the frayed omens in the Review.";
+  else if(pct>=0.4) line="The spine holds, the detail wavers. You know where the tale is going; sit with the books that slipped and the picture sharpens.";
+  else if(pct>0) line="Lights in the fog. Some threads caught, most passed too quick across so many books — gather them in the Review and walk again.";
+  else line="The reckoning frays. So many books read fast leave little to hold — no frown; re-walk them one by one, then return to the full sitting.";
+  document.getElementById('vLine').textContent=line;
+  const order=['event','meaning','thread'];
+  const bd=order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
+  document.getElementById('breakdown').innerHTML=bd;
   v.classList.add('show'); v.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
