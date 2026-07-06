@@ -146,6 +146,13 @@
   .footnav button:hover:not(:disabled){border-color:var(--gold);} .footnav button:disabled{opacity:.35; cursor:default;}
   .empty{text-align:center; color:var(--soft); font-style:italic; padding:60px 20px;}
 
+  /* P1: tactile press feedback on nav/link/action pills — :hover is invisible on
+     touch, so taps gave no cue. Mirrors the quiz options' existing :active state. */
+  .topbar button:active:not(:disabled), .homeacts button:active,
+  .thread .lk:active:not(:disabled), .footnav button:active:not(:disabled){
+    transform:scale(.98); border-color:var(--gold);
+  }
+
   /* --- mobile (phones ≤480px) — everything above stays the desktop layout --- */
   @media (max-width:480px){
     /* P0: the Threads view's long "From … — Title" band labels were white-space:nowrap
@@ -153,6 +160,12 @@
        ~343px phone content box. Let band labels wrap instead (min-content is only a
        short word, so they fit); the short home/section bands are unaffected. */
     .band span{ white-space:normal; }
+    /* P1: nav/link/action pills were ~35px tall — under the 44px touch-target min. */
+    .topbar button, .homeacts button, .thread .lk, .footnav button{ min-height:44px; }
+    /* P1: wrapped topbar rows align left instead of spreading with ragged gaps. */
+    .topbar{ justify-content:flex-start; }
+    /* P1: lift the two 10px labels to 11px — the smallest text in the app. */
+    .cell .st, .qkind{ font-size:11px; }
   }
 </style>
 </head>
