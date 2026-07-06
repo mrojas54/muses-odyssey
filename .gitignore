@@ -1,0 +1,7 @@
+# scratch
+.DS_Store
+node_modules/
+.remember/
+.superpowers/
+test-results/
+playwright-report/

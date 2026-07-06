@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Muse's Odyssey</title>
+<style>
+  :root{
+    --ink:#2b211a; --soft:#6b5d4f; --parch:#f4ebdc; --parch2:#efe3cf;
+    --wine:#7c2331; --gold:#b8862f; --olive:#5d6b3a; --sky:#3f5a6b;
+    --ok:#46663d; --ok-bg:#e6efd9; --no:#8a3a3f; --no-bg:#f3dcd9;
+    --card:#fffaf0; --line:#e0d2ba;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0; background:radial-gradient(120% 100% at 50% 0%, #f7efe0 0%, #ecdcc2 100%);
+    color:var(--ink); font-family:Georgia,'Times New Roman',serif; line-height:1.6; padding:20px 16px 80px;}
+  .wrap{max-width:660px; margin:0 auto;}
+
+  /* masthead */
+  .masthead{text-align:center; margin:6px 0 18px;}
+  .masthead .mark{font-size:15px; letter-spacing:6px; text-transform:uppercase; color:var(--wine);}
+  .masthead .mark b{font-weight:normal;}
+  .masthead .by{color:var(--soft); font-style:italic; font-size:13px; margin-top:5px; letter-spacing:.5px;}
+  .masthead .rule{width:64px; height:1px; background:var(--gold); margin:12px auto 0; opacity:.7;}
+
+  /* persistent nav bar */
+  .topbar{display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;
+    margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+  .topbar:empty{display:none;}
+  .topbar .grp{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .topbar button{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line);
+    color:var(--soft); border-radius:20px; padding:6px 13px; cursor:pointer; transition:.15s;}
+  .topbar button:hover:not(:disabled){border-color:var(--gold);}
+  .topbar button:disabled{opacity:.35; cursor:default;}
+  .topbar button.active{background:var(--olive); color:#fbeede; border-color:var(--olive);}
+  .topbar .pos{font-style:italic; color:var(--soft); font-size:14px;}
+  .topbar .readtoggle.on{background:var(--olive); color:#fbeede; border-color:var(--olive);}
+
+  /* home — progress + grid */
+  .progress{text-align:center; color:var(--soft); font-size:13px; letter-spacing:1px; margin:4px 0 6px;}
+  .progbar{height:6px; background:var(--parch2); border-radius:4px; overflow:hidden; margin:8px auto 14px; max-width:360px;}
+  .progbar > i{display:block; height:100%; background:var(--gold); transition:width .4s ease;}
+  .homeacts{text-align:center; margin:0 0 22px;}
+  .homeacts button{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line);
+    color:var(--wine); border-radius:20px; padding:7px 16px; cursor:pointer; transition:.15s; letter-spacing:.5px;}
+  .homeacts button:hover{border-color:var(--gold);}
+  .band{display:flex; align-items:center; gap:12px; margin:26px 0 14px;}
+  .band hr{flex:1; border:none; border-top:1px solid var(--line);}
+  .band span{color:var(--gold); font-size:12px; letter-spacing:3px; text-transform:uppercase; white-space:nowrap;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr)); gap:10px;}
+  .cell{border:1px solid var(--line); border-radius:11px; padding:10px 8px; text-align:center; background:var(--card);
+    cursor:pointer; transition:.12s; min-height:84px; display:flex; flex-direction:column; justify-content:center; gap:3px;}
+  .cell:hover{border-color:var(--gold); transform:translateY(-1px);}
+  .cell .bk{font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--wine);}
+  .cell .tt{font-size:11px; color:var(--soft); line-height:1.25; max-height:2.6em; overflow:hidden;}
+  .cell .st{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--olive);}
+  .cell.read{box-shadow:inset 0 0 0 2px #5d6b3a55;}
+  .cell.unwritten{background:transparent; border-style:dashed; cursor:default; opacity:.5;}
+  .cell.unwritten:hover{transform:none; border-color:var(--line);}
+  .cell.unwritten .bk{color:var(--soft);}
+
+  /* book view */
+  .crown{text-align:center; color:var(--wine); letter-spacing:3px; font-size:13px; text-transform:uppercase; margin-bottom:6px;}
+  h1{text-align:center; font-size:29px; margin:0 0 4px; font-weight:normal;}
+  .sub{text-align:center; color:var(--soft); font-style:italic; font-size:15px; margin-bottom:8px;}
+  .meta{text-align:center; color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:26px;}
+  .scene{background:linear-gradient(160deg, #2a2030 0%, #1f2a33 100%); color:#e9dcc6; border-radius:16px; padding:24px 22px; margin-bottom:30px; font-size:16px;}
+  .scene .lbl{color:#d9b366; font-size:12px; letter-spacing:3px; text-transform:uppercase; text-align:center; display:block; margin-bottom:12px;}
+  .scene p{margin:0 0 12px;} .scene p:last-child{margin-bottom:0;} .scene i{color:#f0e2c8;}
+  .invoke{background:var(--wine); color:#fbeede; border-radius:16px; padding:22px; margin-bottom:30px; text-align:center; font-style:italic; font-size:17px;}
+  .invoke .src{display:block; font-style:normal; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#e8c79a; margin-top:12px;}
+  .movement{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 20px; margin-bottom:18px; box-shadow:0 2px 10px #00000010;}
+  .mnum{color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;}
+  .mtitle{font-size:21px; margin:0 0 12px; font-weight:normal;}
+  .movement p{margin:0 0 12px;} .movement p:last-child{margin-bottom:0;}
+  .why{border-left:3px solid var(--gold); background:#fbf4e3; padding:11px 15px; border-radius:0 8px 8px 0; font-size:15px; color:var(--soft); margin-top:4px;}
+  .why b{color:var(--ink);}
+  .who{color:var(--wine); font-style:italic;} .god{color:var(--sky); font-style:italic;}
+  .simile{margin:26px 0; padding:18px 20px; border:1px dashed var(--gold); border-radius:12px; background:#fdf7ea; font-style:italic; color:var(--soft); font-size:15px;}
+  .simile .lbl{display:block; font-style:normal; color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; text-align:center;}
+  .simile p{margin:0 0 9px;} .simile p:last-child{margin-bottom:0;}
+  .terms{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:18px;}
+  .terms .t{margin-bottom:11px;} .terms .t:last-child{margin-bottom:0;}
+  .terms .gk{color:var(--wine); font-style:italic; font-weight:bold;} .terms .df{color:var(--soft); font-size:15px;}
+  .c{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:15px 18px; margin-bottom:12px; box-shadow:0 2px 9px #00000010;}
+  .c .nm{font-size:18px; margin:0;} .c .ep{font-style:italic; font-size:13.5px; margin:1px 0 8px; color:var(--wine);} .c .ep.god{color:var(--sky);}
+  .c .rl{margin:0; font-size:15px;}
+  .tag{display:inline-block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--olive); border:1px solid var(--line); border-radius:20px; padding:2px 9px; margin-top:9px;}
+
+  /* threads */
+  .thread{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:14px; box-shadow:0 2px 9px #00000010;}
+  .thread .dir{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
+  .thread .tt{font-size:18px; margin:0 0 8px; font-weight:normal;}
+  .thread .nt{margin:0 0 13px; font-size:15px; color:var(--soft);}
+  .thread .lk{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line); color:var(--wine); border-radius:20px; padding:6px 13px; cursor:pointer; transition:.15s;}
+  .thread .lk:hover{border-color:var(--gold);}
+  .thread .lk:disabled{opacity:.45; cursor:default; color:var(--soft);}
+  .thread .from{font-size:12px; color:var(--soft); font-style:italic; margin-bottom:8px;}
+
+  /* quiz */
+  .divider{text-align:center; color:var(--gold); letter-spacing:6px; margin:34px 0 26px; font-size:16px;}
+  .gate{text-align:center; margin-bottom:8px;}
+  .gate h2{font-size:24px; font-weight:normal; margin:0 0 4px;}
+  .priorscore{text-align:center; color:var(--soft); font-size:13px; font-style:italic; margin:6px 0 6px;}
+  .missnote{text-align:center; color:var(--wine); font-size:13px; font-style:italic; margin:0 0 14px;}
+  .tally{text-align:center; color:var(--soft); font-size:13px; letter-spacing:2px; margin:0 0 18px; text-transform:uppercase;}
+  .q{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; margin-bottom:18px; box-shadow:0 2px 10px #00000010;}
+  .qhead{display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .qn{color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase;}
+  .reviewfrom{font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-bottom:6px;}
+  .q.cleared{opacity:.6;}
+  #reviewdone{display:none; text-align:center; background:var(--olive); color:#f3f7ea; border-radius:16px; padding:26px 22px; margin-top:8px;}
+  #reviewdone.show{display:block; animation:fade .4s ease;}
+  #reviewdone .rsum{font-size:18px; font-style:italic; margin:8px 0 4px;}
+  #reviewdone button{font:inherit; margin-top:16px; background:#f3f7ea; color:var(--olive); border:none; border-radius:20px; padding:8px 18px; cursor:pointer; letter-spacing:1px;}
+  .qkind{display:inline-block; font-size:10px; letter-spacing:1px; text-transform:uppercase; border-radius:20px; padding:2px 9px;}
+  .k-event{color:var(--olive); border:1px solid #5d6b3a55; background:#eef2e3;}
+  .k-meaning{color:var(--sky); border:1px solid #3f5a6b44; background:#e7eef2;}
+  .k-thread{color:var(--wine); border:1px solid #7c233144; background:#f6e6e7;}
+  .missflag{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); border-radius:20px; padding:2px 9px;}
+  .qt{font-size:18px; margin-bottom:16px;}
+  .opt{display:block; width:100%; text-align:left; font:inherit; font-size:16px; background:var(--parch); border:1px solid var(--line); border-radius:10px; padding:13px 15px; margin-bottom:10px; cursor:pointer; color:var(--ink); transition:transform .08s ease, background .15s ease, border-color .15s ease;}
+  .opt:active{transform:scale(.99);} .opt:hover{border-color:var(--gold);}
+  .opt.correct{background:var(--ok-bg); border-color:var(--ok); color:var(--ok); font-weight:bold;}
+  .opt.wrong{background:var(--no-bg); border-color:var(--no); color:var(--no);}
+  .opt:disabled{cursor:default;}
+  .truth{display:none; margin-top:4px; padding:13px 15px; border-left:3px solid var(--gold); background:#fbf4e3; border-radius:0 8px 8px 0; font-size:15px; color:var(--soft);}
+  .truth b{color:var(--ink);} .truth.show{display:block; animation:fade .3s ease;}
+  .examsrc{margin-top:10px; color:var(--gold); font-size:12px; letter-spacing:1px; text-transform:uppercase;}
+  @keyframes fade{from{opacity:0; transform:translateY(-3px);} to{opacity:1;}}
+  #verdict{display:none; text-align:center; background:var(--wine); color:#fbeede; border-radius:16px; padding:28px 22px; margin-top:8px;}
+  #verdict.show{display:block; animation:fade .4s ease;}
+  #verdict .score{font-size:46px; letter-spacing:2px; margin:6px 0;}
+  #verdict .vline{font-size:19px; font-style:italic; margin-top:10px;}
+  #verdict .breakdown{margin-top:16px;}
+  #verdict .bk{display:inline-block; margin:3px 5px; padding:4px 12px; border-radius:20px; background:#ffffff1a; border:1px solid #ffffff33; font-size:13px; letter-spacing:.5px;}
+  /* per-book reckoning: one row per book, canonical reading order, a bar for the ratio */
+  #verdict .books{margin:20px auto 4px; max-width:340px; text-align:left;}
+  #verdict .books h4{margin:0 0 10px; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#e8c79a; text-align:center; font-weight:normal;}
+  #verdict .brow{display:flex; align-items:center; gap:10px; margin:6px 0; font-size:13px; letter-spacing:.5px;}
+  #verdict .brow .bl{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.9;}
+  #verdict .brow .bbar{flex:0 0 64px; height:5px; border-radius:3px; background:#ffffff1a; overflow:hidden;}
+  #verdict .brow .bbar i{display:block; height:100%; background:#e8c79a;}
+  #verdict .brow .bsc{flex:0 0 auto; font-variant-numeric:tabular-nums; opacity:.85;}
+  #verdict .brow.weak .bl{color:#e8c79a; opacity:1;}
+  #verdict .brow.weak .bbar i{background:#c98b8b;}
+  #verdict .small{font-size:13px; opacity:.85; margin-top:16px; letter-spacing:1px;}
+  #verdict button{font:inherit; margin-top:16px; background:#fbeede; color:var(--wine); border:none; border-radius:20px; padding:8px 18px; cursor:pointer; letter-spacing:1px;}
+  .footnav{display:flex; gap:10px; justify-content:space-between; margin-top:34px; padding-top:18px; border-top:1px solid var(--line);}
+  .footnav button{font:inherit; font-size:14px; background:var(--parch); border:1px solid var(--line); color:var(--soft); border-radius:22px; padding:9px 16px; cursor:pointer; transition:.15s;}
+  .footnav button:hover:not(:disabled){border-color:var(--gold);} .footnav button:disabled{opacity:.35; cursor:default;}
+  .empty{text-align:center; color:var(--soft); font-style:italic; padding:60px 20px;}
+
+  /* P1: tactile press feedback on nav/link/action pills — :hover is invisible on
+     touch, so taps gave no cue. Mirrors the quiz options' existing :active state. */
+  .topbar button:active:not(:disabled), .homeacts button:active,
+  .thread .lk:active:not(:disabled), .footnav button:active:not(:disabled){
+    transform:scale(.98); border-color:var(--gold);
+  }
+
+  /* --- mobile (phones ≤480px) — everything above stays the desktop layout --- */
+  @media (max-width:480px){
+    /* P0: the Threads view's long "From … — Title" band labels were white-space:nowrap
+       at 394–496px intrinsic width, forcing the whole page to scroll sideways on a
+       ~343px phone content box. Let band labels wrap instead (min-content is only a
+       short word, so they fit); the short home/section bands are unaffected. */
+    .band span{ white-space:normal; }
+    /* P1: nav/link/action pills were ~35px tall — under the 44px touch-target min. */
+    .topbar button, .homeacts button, .thread .lk, .footnav button{ min-height:44px; }
+    /* P1: wrapped topbar rows align left instead of spreading with ragged gaps. */
+    .topbar{ justify-content:flex-start; }
+    /* P1: lift the two 10px labels to 11px — the smallest text in the app. */
+    .cell .st, .qkind{ font-size:11px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div class="mark">✦ The Muse's <b>Odyssey</b> ✦</div>
+    <div class="by">a reading companion for the Iliad &amp; the Odyssey</div>
+    <div class="rule"></div>
+  </div>
+  <div class="topbar" id="topbar"></div>
+  <div id="view"></div>
+</div>
+
+<script src="../data/manifest.js"></script>
+<script>
+/* ---- data registry ---- */
+window.LOOM_DATA = window.LOOM_DATA || {};
+const LOAD = window.LOOM_BOOKS || [];          // authored ids to actually load (avoids 404s)
+
+/* ---- canonical 48-book plan (the home grid) ---- */
+const pad = n => String(n).padStart(2,'0');
+const PLAN = [];
+for(let i=1;i<=24;i++) PLAN.push({ id:`iliad-${pad(i)}`,   epic:"The Iliad",   short:"Iliad",   n:i });
+for(let i=1;i<=24;i++) PLAN.push({ id:`odyssey-${pad(i)}`, epic:"The Odyssey", short:"Odyssey", n:i });
+const ORDER = PLAN.map(p => p.id);
+
+/* quiz kinds — the two comprehension layers, plus the cross-book thread */
+const KIND = {
+  event:   { label:"Event recall",  cls:"k-event"   },
+  meaning: { label:"Why it matters", cls:"k-meaning" },
+  thread:  { label:"Cross-book thread", cls:"k-thread" }
+};
+
+let current=null;
+const authored = id => !!window.LOOM_DATA[id];
+const isRead = id => localStorage.getItem('loom.read.'+id)==='1';
+const setRead = (id,v) => localStorage.setItem('loom.read.'+id, v?'1':'0');
+const bestScore = id => { const v=localStorage.getItem('loom.best.'+id); return v==null?null:+v; };
+const saveScore = (id,s) => { const b=bestScore(id); if(b==null||s>b) localStorage.setItem('loom.best.'+id, s); };
+const priorMiss = id => { try{ return JSON.parse(localStorage.getItem('loom.miss.'+id)||'[]'); }catch(e){ return []; } };
+const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringify(arr));
+const clearMiss = (id,qi) => saveMiss(id, priorMiss(id).filter(x=>x!==qi));
+function allMisses(){
+  const out=[];
+  ORDER.filter(authored).forEach(id=>{
+    const d=window.LOOM_DATA[id];
+    priorMiss(id).forEach(qi=>{ if(d.quiz && d.quiz[qi]) out.push({id, qi, item:d.quiz[qi]}); });
+  });
+  return out;
+}
+const planOf = id => PLAN.find(p=>p.id===id);
+const label = id => { const p=planOf(id); return p ? `${p.short} · Book ${p.n}` : id; };
+
+function boot(){
+  const last = localStorage.getItem('loom.last');
+  if(last && authored(last)) showBook(last); else showHome();
+}
+
+/* ---- HOME ---- */
+function showHome(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML='';
+  const authoredAll = PLAN.filter(p=>authored(p.id)).length;
+  const readAll = PLAN.filter(p=>isRead(p.id)).length;
+  const threadCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].threads||[]).length), 0);
+  const examCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].quiz||[]).length), 0);
+  let h='';
+  const missCount = allMisses().length;
+  h += `<div class="progress">${authoredAll} of 48 books on the loom · ${readAll} read</div>`;
+  h += `<div class="progbar"><i style="width:${(authoredAll/48*100).toFixed(1)}%"></i></div>`;
+  if(examCount || threadCount || missCount){
+    h += `<div class="homeacts">`;
+    if(examCount)   h += `<button onclick="showExam()">◈ The Grand Examination (${examCount}) →</button>`;
+    if(threadCount) h += `<button onclick="showThreads()">✦ The woven threads (${threadCount}) →</button>`;
+    if(missCount)   h += `<button onclick="showReview()">↺ Re-walk the missed omens (${missCount}) →</button>`;
+    h += `</div>`;
+  }
+  ["Iliad","Odyssey"].forEach(short=>{
+    const list = PLAN.filter(p=>p.short===short);
+    const a = list.filter(p=>authored(p.id)).length;
+    h += `<div class="band"><span>${short} · ${a}/24</span><hr></div><div class="grid">`;
+    list.forEach(p=>{
+      if(authored(p.id)){
+        const d = window.LOOM_DATA[p.id]; const best=bestScore(p.id); const read=isRead(p.id);
+        const total = d.quiz?d.quiz.length:0;
+        const st = best!=null ? `${best}/${total}${read?' · ✓':''}` : (read?'✓ read':'open');
+        h += `<div class="cell${read?' read':''}" onclick="showBook('${p.id}')"><div class="bk">Book ${p.n}</div><div class="tt">${d.meta.title}</div><div class="st">${st}</div></div>`;
+      } else {
+        h += `<div class="cell unwritten"><div class="bk">Book ${p.n}</div><div class="tt">unwritten</div></div>`;
+      }
+    });
+    h += `</div>`;
+  });
+  document.getElementById('view').innerHTML = h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- THREADS (cross-book view) ---- */
+function showThreads(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showReview()">Review</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
+    `<div class="grp"><button class="active" disabled>The woven threads</button></div>`;
+  let h = `<div class="crown">◈ The Loom remembers ◈</div><h1>The Woven Threads</h1>`+
+          `<div class="sub">how each book ties back into the ones before — and forward into the ones to come</div>`+
+          `<div class="meta">follow a thread to walk the link in either direction</div>`;
+  const sources = ORDER.filter(id=>authored(id) && (window.LOOM_DATA[id].threads||[]).length);
+  if(!sources.length){
+    h += `<div class="empty">No threads woven yet. Author a book with a <i>threads</i> entry and they appear here.</div>`;
+  } else {
+    sources.forEach(id=>{
+      const d = window.LOOM_DATA[id];
+      h += `<div class="band"><span>From ${label(id)} — ${d.meta.title}</span><hr></div>`;
+      (d.threads||[]).forEach(t=> h += threadCard(t, id));
+    });
+  }
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+  document.getElementById('view').innerHTML = h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* one thread card; `srcId` is the book it lives on */
+function threadCard(t, srcId){
+  const dir = t.dir==='back' ? '↩ a thread back' : (t.dir==='ahead' ? 'a thread ahead ↪' : '↔ a thread');
+  const toAuthored = authored(t.to);
+  const btn = toAuthored
+    ? `<button class="lk" onclick="showBook('${t.to}')">Read ${label(t.to)} →</button>`
+    : `<button class="lk" disabled>${label(t.to)} — unwritten</button>`;
+  return `<div class="thread"><div class="dir">${dir}</div>`+
+         `<div class="from">on ${label(srcId)} · links to ${label(t.to)}</div>`+
+         `<h3 class="tt">${t.title}</h3><p class="nt">${t.note}</p>${btn}</div>`;
+}
+
+/* ---- REVIEW (the missed omens, across every book) ---- */
+function showReview(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
+    `<div class="grp"><button class="active" disabled>Re-walking the missed</button></div>`;
+  const items = allMisses();
+  let h = `<div class="crown">◈ The Loom keeps its frayed strands ◈</div><h1>The Missed Omens</h1>`+
+          `<div class="sub">every omen you let slip, gathered from all the books into one re-walking</div>`+
+          `<div class="meta">answer true and the strand is mended — it leaves this page</div>`;
+  if(!items.length){
+    h += `<div class="empty">No omens outstanding. Every strand you missed has been re-walked — the loom is clean.</div>`;
+    h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+    document.getElementById('view').innerHTML=h;
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  h += `<div class="tally" id="rtally">${items.length} frayed strand${items.length>1?'s':''} · none yet re-walked</div>`;
+  h += `<div id="review"></div>`;
+  h += `<div id="reviewdone"><div class="crown" style="color:#eef3e2;">The Strands Re-walked</div><div class="rsum" id="rsum"></div><button onclick="showReview()">Gather what still frays</button></div>`;
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button></div>`;
+  document.getElementById('view').innerHTML=h;
+  buildReview(items);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function buildReview(items){
+  const box=document.getElementById('review');
+  const total=items.length; let answered=0, mended=0;
+  items.forEach(({id,qi,item})=>{
+    const card=document.createElement('div'); card.className='q';
+    const ki=KIND[item.kind||'event']||KIND.event;
+    card.innerHTML =
+      `<div class="reviewfrom">${label(id)} · ${item.n||''}</div>`+
+      `<div class="qhead"><span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){
+          b.classList.add('correct'); clearMiss(id,qi); mended++;
+          card.classList.add('cleared');
+        } else {
+          b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+        }
+        truth.classList.add('show'); answered++;
+        document.getElementById('rtally').textContent =
+          `Re-walked ${answered} of ${total} · ${mended} mended, ${answered-mended} still frayed`;
+        if(answered===total) reviewDone(mended,total);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); box.appendChild(card);
+  });
+}
+
+function reviewDone(mended,total){
+  const d=document.getElementById('reviewdone');
+  const still=total-mended;
+  let line;
+  if(still===0) line=`All ${total} strands mended. What you once let slip, you now hold. The loom is clean.`;
+  else if(mended===0) line=`None mended this pass — these ${still} run deep. Re-walk their books, then gather them again.`;
+  else line=`${mended} mended, ${still} still fray. The mended ones leave this page; come back for the rest.`;
+  document.getElementById('rsum').textContent=line;
+  d.classList.add('show'); d.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- BOOK ---- */
+function neighbors(id){
+  const a = ORDER.filter(authored);
+  const i = a.indexOf(id);
+  return { prev: i>0?a[i-1]:null, next: (i>=0&&i<a.length-1)?a[i+1]:null };
+}
+
+function topbar(id){
+  const p = planOf(id);
+  const {prev,next} = neighbors(id);
+  const read = isRead(id);
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp">`+
+      `<button onclick="showHome()">✦ All Books</button>`+
+      `<button ${prev?`onclick="showBook('${prev}')"`:'disabled'}>← Prev</button>`+
+      `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showReview()">Review</button>`+
+      `<button onclick="showExam()">Examination</button>`+
+    `</div>`+
+    `<div class="grp"><span class="pos">${p.short} · Book ${p.n}</span>`+
+      `<button class="readtoggle${read?' on':''}" onclick="toggleRead('${id}')">${read?'✓ Read':'Mark read'}</button>`+
+    `</div>`;
+}
+
+function toggleRead(id){ setRead(id, !isRead(id)); topbar(id); }
+
+function showBook(id){
+  if(!authored(id)) return;
+  current=id; localStorage.setItem('loom.last', id);
+  topbar(id);
+  renderBody(window.LOOM_DATA[id]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderBody(d){
+  const m=d.meta; let h='';
+  h += `<div class="crown">◈ ${m.song} · ${m.epic} ◈</div><h1>${m.title}</h1>`;
+  if(m.subtitle) h += `<div class="sub">${m.subtitle}</div>`;
+  if(m.tagline) h += `<div class="meta">${m.tagline}</div>`;
+  if(m.epigraph) h += `<div class="invoke">${m.epigraph.text}<span class="src">${m.epigraph.src||''}</span></div>`;
+  if(d.scene&&d.scene.length) h += `<div class="scene"><span class="lbl">✦ The scene is set ✦</span>${d.scene.map(p=>`<p>${p}</p>`).join('')}</div>`;
+  if(d.terms&&d.terms.length){
+    h += `<div class="band"><span>Words to carry</span><hr></div><div class="terms">`+
+      d.terms.map(t=>`<div class="t"><span class="gk">${t.gk}</span> — <span class="df">${t.def}</span></div>`).join('')+`</div>`;
+  }
+  if(d.movements&&d.movements.length){
+    h += `<div class="band"><span>The movements</span><hr></div>`;
+    d.movements.forEach(mv=>{ h += `<div class="movement"><div class="mnum">${mv.n||''}</div><h3 class="mtitle">${mv.title}</h3>${mv.what}<div class="why"><b>Why it matters:</b> ${mv.why}</div></div>`; });
+  }
+  if(d.panels&&d.panels.length){
+    d.panels.forEach(p=>{ h += `<div class="simile"><span class="lbl">${p.label}</span>${p.lines.map(l=>`<p>${l}</p>`).join('')}</div>`; });
+  }
+  if(d.characters){
+    Object.keys(d.characters).forEach(group=>{
+      h += `<div class="band"><span>${group}</span><hr></div>`;
+      d.characters[group].forEach(c=>{
+        const godcls=(group.toLowerCase().includes('god')||c.god)?' god':'';
+        h += `<div class="c"><h4 class="nm">${c.name}</h4><div class="ep${godcls}">${c.epithet}</div><p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}</div>`;
+      });
+    });
+  }
+  if(d.threads&&d.threads.length){
+    h += `<div class="band"><span>Threads of the Loom</span><hr></div>`;
+    d.threads.forEach(t=> h += threadCard(t, current));
+  }
+  if(d.quiz&&d.quiz.length){
+    h += `<div class="divider">❧ · ❧ · ❧</div>`;
+    h += `<div class="gate"><div class="crown">◈ The Ninth Hour ◈</div><h2>The Oracle's Examination</h2><div class="sub">${d.quiz.length} omens · the thread holds or the shears draw near</div></div>`;
+    const best=bestScore(current);
+    h += `<div class="priorscore">${best!=null?`Your best reckoning here: ${best} / ${d.quiz.length}`:'Not yet examined on this book.'}</div>`;
+    const pm = priorMiss(current);
+    if(pm.length) h += `<div class="missnote">↺ ${pm.length} omen${pm.length>1?'s':''} slipped last time — marked below. Linger there.</div>`;
+    h += `<div class="tally" id="tally">${d.quiz.length} omens to read · none yet turned</div><div id="quiz"></div>`;
+    h += `<div id="verdict"><div class="crown" style="color:#e8c79a;">The Fates Render Judgment</div><div class="score" id="scoreNum"></div><div class="vline" id="vLine"></div><div class="breakdown" id="breakdown"></div><div class="small">Tap a truth to read it · the thread spins on</div><button onclick="showBook(current)">Sit the omens again</button></div>`;
+  }
+  const {prev,next}=neighbors(current);
+  h += `<div class="footnav"><button ${prev?`onclick="showBook('${prev}')"`:'disabled'}>← Prev</button>`+
+       `<button onclick="showHome()">✦ All Books</button>`+
+       `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button></div>`;
+
+  document.getElementById('view').innerHTML=h;
+  if(d.quiz&&d.quiz.length) buildQuiz(d.quiz);
+}
+
+/* ---- quiz ---- */
+function buildQuiz(Q){
+  const quiz=document.getElementById('quiz');
+  const pm = priorMiss(current);
+  let answered=0, score=0;
+  const missArr=[];
+  const stats={};  // kind -> {c,t}
+  Q.forEach(item=>{ const k=item.kind||'event'; (stats[k]=stats[k]||{c:0,t:0}).t++; });
+
+  Q.forEach((item,qi)=>{
+    const card=document.createElement('div'); card.className='q';
+    const k = item.kind||'event';
+    const ki = KIND[k]||KIND.event;
+    const missedBefore = pm.includes(qi);
+    card.innerHTML=
+      `<div class="qhead"><span class="qn">${item.n||''}</span>`+
+      `<span class="qkind ${ki.cls}">${ki.label}</span>`+
+      `${missedBefore?'<span class="missflag">↺ missed last time</span>':''}</div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; }
+        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct'); missArr.push(qi); }
+        truth.classList.add('show'); answered++;
+        document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
+        if(answered===Q.length) reveal(score, Q.length, stats, missArr);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); quiz.appendChild(card);
+  });
+}
+
+function reveal(score,total,stats,missArr){
+  saveScore(current,score);
+  saveMiss(current, missArr.slice().sort((a,b)=>a-b));
+  const v=document.getElementById('verdict');
+  document.getElementById('scoreNum').textContent=`${score} / ${total}`;
+  const pct=score/total; let line;
+  if(pct===1) line="The thread runs golden. You read clearly — the Fates smile on this one.";
+  else if(pct>=0.7) line="The thread holds bright. The book lives in you; a strand or two slipped. Onward.";
+  else if(pct>=0.4) line="The thread holds. The spine is yours, the finer turns still forming. Re-walk the movements and go on.";
+  else if(pct>0) line="One light in the fog. A single true sight is a beginning; the rest passed too quick. Linger here once more.";
+  else line="The thread frays at the meaning, not the count. The pages turned faster than the tale took root. No frown — sit longer.";
+  document.getElementById('vLine').textContent=line;
+  const order=['event','meaning','thread'];
+  const bd = order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
+  document.getElementById('breakdown').innerHTML = bd;
+  v.classList.add('show'); v.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- THE GRAND EXAMINATION (every authored book, one cumulative sitting) ---- */
+/* Pool every quiz omen across all authored books, each tagged with its source book
+   so a miss/mend can flow back into the per-book Review loop. */
+function examPool(){
+  const out=[];
+  ORDER.filter(authored).forEach(id=>{
+    const d=window.LOOM_DATA[id];
+    (d.quiz||[]).forEach((item,qi)=> out.push({srcId:id, qi, item}));
+  });
+  return out;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+function showExam(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showReview()">Review</button></div>`+
+    `<div class="grp"><button class="active" disabled>The Grand Examination</button></div>`;
+  const pool = shuffle(examPool());
+  const total = pool.length;
+  let h = `<div class="crown">◈ Every thread drawn taut ◈</div><h1>The Grand Examination</h1>`+
+          `<div class="sub">all ${total} omens from the books you have walked, gathered into one reckoning</div>`+
+          `<div class="meta">the Fates weigh every book at once — no book announced, the thread alone must tell</div>`;
+  if(!total){
+    h += `<div class="empty">No omens to sit yet. Author a book with a <i>quiz</i> and the examination opens.</div>`+
+         `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+    document.getElementById('view').innerHTML=h; window.scrollTo({top:0,behavior:'smooth'}); return;
+  }
+  const best=bestScore('exam');
+  h += `<div class="priorscore">${best!=null?`Your best reckoning across all books: ${best} / ${total}`:'Not yet sat in full.'}</div>`;
+  h += `<div class="divider">❧ · ❧ · ❧</div>`;
+  h += `<div class="tally" id="tally">${total} omens to read · none yet turned</div><div id="exam"></div>`;
+  h += `<div id="verdict"><div class="crown" style="color:#e8c79a;">The Fates Render Full Judgment</div><div class="score" id="scoreNum"></div><div class="vline" id="vLine"></div><div class="breakdown" id="breakdown"></div><div class="books" id="bookbreak"></div><div class="small">Tap a truth to read it · every book at once</div><button onclick="showExam()">Sit the full reckoning again</button></div>`;
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button><button onclick="showReview()">Review</button></div>`;
+  document.getElementById('view').innerHTML=h;
+  buildExam(pool);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function buildExam(items){
+  const box=document.getElementById('exam');
+  const total=items.length; let answered=0, score=0;
+  const stats={};   // kind   -> {c,t}
+  const byBook={};  // srcId  -> {c,t}
+  items.forEach(({srcId,item})=>{ const k=item.kind||'event';
+    (stats[k]=stats[k]||{c:0,t:0}).t++; (byBook[srcId]=byBook[srcId]||{c:0,t:0}).t++; });
+  items.forEach(({srcId,qi,item},idx)=>{
+    const card=document.createElement('div'); card.className='q';
+    const k=item.kind||'event'; const ki=KIND[k]||KIND.event;
+    card.innerHTML=
+      `<div class="qhead"><span class="qn">Omen ${idx+1} of ${total}</span>`+
+      `<span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth';
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; byBook[srcId].c++; clearMiss(srcId,qi); }
+        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+              saveMiss(srcId, Array.from(new Set([...priorMiss(srcId), qi])).sort((a,b)=>a-b)); }
+        /* source book stays hidden until answered, then revealed with the truth */
+        truth.innerHTML = item.truth + `<div class="examsrc">— ${label(srcId)}${item.n?` · ${item.n}`:''}</div>`;
+        truth.classList.add('show'); answered++;
+        document.getElementById('tally').textContent=`Omens read · ${answered} of ${total}`;
+        if(answered===total) examReveal(score,total,stats,byBook);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); box.appendChild(card);
+  });
+}
+
+function examReveal(score,total,stats,byBook){
+  saveScore('exam',score);
+  const v=document.getElementById('verdict');
+  document.getElementById('scoreNum').textContent=`${score} / ${total}`;
+  const pct=score/total; let line;
+  if(pct===1) line="Every thread runs golden across all the books. The whole tale lives in you — the Fates fall silent, and that silence is the highest praise.";
+  else if(pct>=0.85) line="The weave holds bright end to end. A strand or two slipped, but the epic is yours.";
+  else if(pct>=0.7) line="The weave holds. The great shape of the war is in you; the finer turns still settling — gather the frayed omens in the Review.";
+  else if(pct>=0.4) line="The spine holds, the detail wavers. You know where the tale is going; sit with the books that slipped and the picture sharpens.";
+  else if(pct>0) line="Lights in the fog. Some threads caught, most passed too quick across so many books — gather them in the Review and walk again.";
+  else line="The reckoning frays. So many books read fast leave little to hold — no frown; re-walk them one by one, then return to the full sitting.";
+  document.getElementById('vLine').textContent=line;
+  const order=['event','meaning','thread'];
+  const bd=order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
+  document.getElementById('breakdown').innerHTML=bd;
+  /* per-book reckoning — canonical reading order; a book under half its omens is flagged to re-walk */
+  const rows = ORDER.filter(authored).filter(id=>byBook[id]).map(id=>{
+    const {c,t}=byBook[id]; const pct=Math.round((c/t)*100); const weak=c/t<0.5;
+    return `<div class="brow${weak?' weak':''}"><span class="bl">${label(id)}</span>`+
+           `<span class="bbar"><i style="width:${pct}%"></i></span>`+
+           `<span class="bsc">${c}/${t}</span></div>`;
+  }).join('');
+  document.getElementById('bookbreak').innerHTML = rows
+    ? `<h4>By book</h4>${rows}` : '';
+  v.classList.add('show'); v.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- kickoff: load authored data files, then boot (runs after all decls) ---- */
+let pending = LOAD.length;
+if(!pending) boot();
+LOAD.forEach(id=>{
+  const s=document.createElement('script'); s.src=`../data/${id}.js`;
+  s.onload=s.onerror=()=>{ if(--pending===0) boot(); };
+  document.head.appendChild(s);
+});
+</script>
+</body>
+</html>
