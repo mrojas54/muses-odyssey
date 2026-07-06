@@ -145,6 +145,15 @@
   .footnav button{font:inherit; font-size:14px; background:var(--parch); border:1px solid var(--line); color:var(--soft); border-radius:22px; padding:9px 16px; cursor:pointer; transition:.15s;}
   .footnav button:hover:not(:disabled){border-color:var(--gold);} .footnav button:disabled{opacity:.35; cursor:default;}
   .empty{text-align:center; color:var(--soft); font-style:italic; padding:60px 20px;}
+
+  /* --- mobile (phones ≤480px) — everything above stays the desktop layout --- */
+  @media (max-width:480px){
+    /* P0: the Threads view's long "From … — Title" band labels were white-space:nowrap
+       at 394–496px intrinsic width, forcing the whole page to scroll sideways on a
+       ~343px phone content box. Let band labels wrap instead (min-content is only a
+       short word, so they fit); the short home/section bands are unaffected. */
+    .band span{ white-space:normal; }
+  }
 </style>
 </head>
 <body>
