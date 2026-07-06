@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Muse's Odyssey</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Muse’s Odyssey">
+<meta name="theme-color" content="#7c2331">
+
+<style>
+  :root{
+    --ink:#2b211a; --soft:#6b5d4f; --parch:#f4ebdc; --parch2:#efe3cf;
+    --wine:#7c2331; --gold:#b8862f; --olive:#5d6b3a; --sky:#3f5a6b;
+    --ok:#46663d; --ok-bg:#e6efd9; --no:#8a3a3f; --no-bg:#f3dcd9;
+    --card:#fffaf0; --line:#e0d2ba;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0; background:radial-gradient(120% 100% at 50% 0%, #f7efe0 0%, #ecdcc2 100%);
+    color:var(--ink); font-family:Georgia,'Times New Roman',serif; line-height:1.6; padding:20px 16px 80px;}
+  .wrap{max-width:660px; margin:0 auto;}
+
+  /* masthead */
+  .masthead{text-align:center; margin:6px 0 18px;}
+  .masthead .mark{font-size:15px; letter-spacing:6px; text-transform:uppercase; color:var(--wine);}
+  .masthead .mark b{font-weight:normal;}
+  .masthead .by{color:var(--soft); font-style:italic; font-size:13px; margin-top:5px; letter-spacing:.5px;}
+  .masthead .rule{width:64px; height:1px; background:var(--gold); margin:12px auto 0; opacity:.7;}
+
+  /* persistent nav bar */
+  .topbar{display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;
+    margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+  .topbar:empty{display:none;}
+  .topbar .grp{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .topbar button{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line);
+    color:var(--soft); border-radius:20px; padding:6px 13px; cursor:pointer; transition:.15s;}
+  .topbar button:hover:not(:disabled){border-color:var(--gold);}
+  .topbar button:disabled{opacity:.35; cursor:default;}
+  .topbar button.active{background:var(--olive); color:#fbeede; border-color:var(--olive);}
+  .topbar .pos{font-style:italic; color:var(--soft); font-size:14px;}
+  .topbar .readtoggle.on{background:var(--olive); color:#fbeede; border-color:var(--olive);}
+
+  /* home — progress + grid */
+  .progress{text-align:center; color:var(--soft); font-size:13px; letter-spacing:1px; margin:4px 0 6px;}
+  .progbar{height:6px; background:var(--parch2); border-radius:4px; overflow:hidden; margin:8px auto 14px; max-width:360px;}
+  .progbar > i{display:block; height:100%; background:var(--gold); transition:width .4s ease;}
+  .homeacts{text-align:center; margin:0 0 22px;}
+  .homeacts button{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line);
+    color:var(--wine); border-radius:20px; padding:7px 16px; cursor:pointer; transition:.15s; letter-spacing:.5px;}
+  .homeacts button:hover{border-color:var(--gold);}
+  .band{display:flex; align-items:center; gap:12px; margin:26px 0 14px;}
+  .band hr{flex:1; border:none; border-top:1px solid var(--line);}
+  .band span{color:var(--gold); font-size:12px; letter-spacing:3px; text-transform:uppercase; white-space:nowrap;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr)); gap:10px;}
+  .cell{border:1px solid var(--line); border-radius:11px; padding:10px 8px; text-align:center; background:var(--card);
+    cursor:pointer; transition:.12s; min-height:84px; display:flex; flex-direction:column; justify-content:center; gap:3px;}
+  .cell:hover{border-color:var(--gold); transform:translateY(-1px);}
+  .cell .bk{font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--wine);}
+  .cell .tt{font-size:11px; color:var(--soft); line-height:1.25; max-height:2.6em; overflow:hidden;}
+  .cell .st{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--olive);}
+  .cell.read{box-shadow:inset 0 0 0 2px #5d6b3a55;}
+  .cell.unwritten{background:transparent; border-style:dashed; cursor:default; opacity:.5;}
+  .cell.unwritten:hover{transform:none; border-color:var(--line);}
+  .cell.unwritten .bk{color:var(--soft);}
+
+  /* book view */
+  .crown{text-align:center; color:var(--wine); letter-spacing:3px; font-size:13px; text-transform:uppercase; margin-bottom:6px;}
+  h1{text-align:center; font-size:29px; margin:0 0 4px; font-weight:normal;}
+  .sub{text-align:center; color:var(--soft); font-style:italic; font-size:15px; margin-bottom:8px;}
+  .meta{text-align:center; color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:26px;}
+  .scene{background:linear-gradient(160deg, #2a2030 0%, #1f2a33 100%); color:#e9dcc6; border-radius:16px; padding:24px 22px; margin-bottom:30px; font-size:16px;}
+  .scene .lbl{color:#d9b366; font-size:12px; letter-spacing:3px; text-transform:uppercase; text-align:center; display:block; margin-bottom:12px;}
+  .scene p{margin:0 0 12px;} .scene p:last-child{margin-bottom:0;} .scene i{color:#f0e2c8;}
+  .invoke{background:var(--wine); color:#fbeede; border-radius:16px; padding:22px; margin-bottom:30px; text-align:center; font-style:italic; font-size:17px;}
+  .invoke .src{display:block; font-style:normal; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#e8c79a; margin-top:12px;}
+  .movement{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 20px; margin-bottom:18px; box-shadow:0 2px 10px #00000010;}
+  .mnum{color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;}
+  .mtitle{font-size:21px; margin:0 0 12px; font-weight:normal;}
+  .movement p{margin:0 0 12px;} .movement p:last-child{margin-bottom:0;}
+  .why{border-left:3px solid var(--gold); background:#fbf4e3; padding:11px 15px; border-radius:0 8px 8px 0; font-size:15px; color:var(--soft); margin-top:4px;}
+  .why b{color:var(--ink);}
+  .who{color:var(--wine); font-style:italic;} .god{color:var(--sky); font-style:italic;}
+  .simile{margin:26px 0; padding:18px 20px; border:1px dashed var(--gold); border-radius:12px; background:#fdf7ea; font-style:italic; color:var(--soft); font-size:15px;}
+  .simile .lbl{display:block; font-style:normal; color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; text-align:center;}
+  .simile p{margin:0 0 9px;} .simile p:last-child{margin-bottom:0;}
+  .terms{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:18px;}
+  .terms .t{margin-bottom:11px;} .terms .t:last-child{margin-bottom:0;}
+  .terms .gk{color:var(--wine); font-style:italic; font-weight:bold;} .terms .df{color:var(--soft); font-size:15px;}
+  .c{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:15px 18px; margin-bottom:12px; box-shadow:0 2px 9px #00000010;}
+  .c .nm{font-size:18px; margin:0;} .c .ep{font-style:italic; font-size:13.5px; margin:1px 0 8px; color:var(--wine);} .c .ep.god{color:var(--sky);}
+  .c .rl{margin:0; font-size:15px;}
+  .tag{display:inline-block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--olive); border:1px solid var(--line); border-radius:20px; padding:2px 9px; margin-top:9px;}
+
+  /* threads */
+  .thread{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:14px; box-shadow:0 2px 9px #00000010;}
+  .thread .dir{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
+  .thread .tt{font-size:18px; margin:0 0 8px; font-weight:normal;}
+  .thread .nt{margin:0 0 13px; font-size:15px; color:var(--soft);}
+  .thread .lk{font:inherit; font-size:13px; background:var(--parch); border:1px solid var(--line); color:var(--wine); border-radius:20px; padding:6px 13px; cursor:pointer; transition:.15s;}
+  .thread .lk:hover{border-color:var(--gold);}
+  .thread .lk:disabled{opacity:.45; cursor:default; color:var(--soft);}
+  .thread .from{font-size:12px; color:var(--soft); font-style:italic; margin-bottom:8px;}
+
+  /* quiz */
+  .divider{text-align:center; color:var(--gold); letter-spacing:6px; margin:34px 0 26px; font-size:16px;}
+  .gate{text-align:center; margin-bottom:8px;}
+  .gate h2{font-size:24px; font-weight:normal; margin:0 0 4px;}
+  .priorscore{text-align:center; color:var(--soft); font-size:13px; font-style:italic; margin:6px 0 6px;}
+  .missnote{text-align:center; color:var(--wine); font-size:13px; font-style:italic; margin:0 0 14px;}
+  .tally{text-align:center; color:var(--soft); font-size:13px; letter-spacing:2px; margin:0 0 18px; text-transform:uppercase;}
+  .q{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; margin-bottom:18px; box-shadow:0 2px 10px #00000010;}
+  .qhead{display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .qn{color:var(--gold); font-size:12px; letter-spacing:2px; text-transform:uppercase;}
+  .reviewfrom{font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-bottom:6px;}
+  .q.cleared{opacity:.6;}
+  #reviewdone{display:none; text-align:center; background:var(--olive); color:#f3f7ea; border-radius:16px; padding:26px 22px; margin-top:8px;}
+  #reviewdone.show{display:block; animation:fade .4s ease;}
+  #reviewdone .rsum{font-size:18px; font-style:italic; margin:8px 0 4px;}
+  #reviewdone button{font:inherit; margin-top:16px; background:#f3f7ea; color:var(--olive); border:none; border-radius:20px; padding:8px 18px; cursor:pointer; letter-spacing:1px;}
+  .qkind{display:inline-block; font-size:10px; letter-spacing:1px; text-transform:uppercase; border-radius:20px; padding:2px 9px;}
+  .k-event{color:var(--olive); border:1px solid #5d6b3a55; background:#eef2e3;}
+  .k-meaning{color:var(--sky); border:1px solid #3f5a6b44; background:#e7eef2;}
+  .k-thread{color:var(--wine); border:1px solid #7c233144; background:#f6e6e7;}
+  .missflag{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); border-radius:20px; padding:2px 9px;}
+  .qt{font-size:18px; margin-bottom:16px;}
+  .opt{display:block; width:100%; text-align:left; font:inherit; font-size:16px; background:var(--parch); border:1px solid var(--line); border-radius:10px; padding:13px 15px; margin-bottom:10px; cursor:pointer; color:var(--ink); transition:transform .08s ease, background .15s ease, border-color .15s ease;}
+  .opt:active{transform:scale(.99);} .opt:hover{border-color:var(--gold);}
+  .opt.correct{background:var(--ok-bg); border-color:var(--ok); color:var(--ok); font-weight:bold;}
+  .opt.wrong{background:var(--no-bg); border-color:var(--no); color:var(--no);}
+  .opt:disabled{cursor:default;}
+  .truth{display:none; margin-top:4px; padding:13px 15px; border-left:3px solid var(--gold); background:#fbf4e3; border-radius:0 8px 8px 0; font-size:15px; color:var(--soft);}
+  .truth b{color:var(--ink);} .truth.show{display:block; animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(-3px);} to{opacity:1;}}
+  #verdict{display:none; text-align:center; background:var(--wine); color:#fbeede; border-radius:16px; padding:28px 22px; margin-top:8px;}
+  #verdict.show{display:block; animation:fade .4s ease;}
+  #verdict .score{font-size:46px; letter-spacing:2px; margin:6px 0;}
+  #verdict .vline{font-size:19px; font-style:italic; margin-top:10px;}
+  #verdict .breakdown{margin-top:16px;}
+  #verdict .bk{display:inline-block; margin:3px 5px; padding:4px 12px; border-radius:20px; background:#ffffff1a; border:1px solid #ffffff33; font-size:13px; letter-spacing:.5px;}
+  #verdict .small{font-size:13px; opacity:.85; margin-top:16px; letter-spacing:1px;}
+  #verdict button{font:inherit; margin-top:16px; background:#fbeede; color:var(--wine); border:none; border-radius:20px; padding:8px 18px; cursor:pointer; letter-spacing:1px;}
+  .footnav{display:flex; gap:10px; justify-content:space-between; margin-top:34px; padding-top:18px; border-top:1px solid var(--line);}
+  .footnav button{font:inherit; font-size:14px; background:var(--parch); border:1px solid var(--line); color:var(--soft); border-radius:22px; padding:9px 16px; cursor:pointer; transition:.15s;}
+  .footnav button:hover:not(:disabled){border-color:var(--gold);} .footnav button:disabled{opacity:.35; cursor:default;}
+  .empty{text-align:center; color:var(--soft); font-style:italic; padding:60px 20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div class="mark">✦ The Muse's <b>Odyssey</b> ✦</div>
+    <div class="by">a reading companion for the Iliad &amp; the Odyssey</div>
+    <div class="rule"></div>
+  </div>
+  <div class="topbar" id="topbar"></div>
+  <div id="view"></div>
+</div>
+
+<script>
+(function(){
+  var ok=false;
+  try{ var k='__loom_probe'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); ok=true; }
+  catch(e){ ok=false; }
+  if(!ok){
+    var mem=Object.create(null);
+    var shim={
+      getItem:function(k){ k=String(k); return k in mem?mem[k]:null; },
+      setItem:function(k,v){ mem[String(k)]=String(v); },
+      removeItem:function(k){ delete mem[String(k)]; },
+      clear:function(){ mem=Object.create(null); },
+      key:function(i){ return Object.keys(mem)[i]||null; },
+      get length(){ return Object.keys(mem).length; }
+    };
+    try{ Object.defineProperty(window,'localStorage',{configurable:true,writable:true,value:shim}); }
+    catch(e){ try{ window.localStorage=shim; }catch(e2){} }
+  }
+  window.addEventListener('error',function(ev){
+    var view=document.getElementById('view');
+    if(view && view.innerHTML.trim()===''){
+      view.innerHTML='<div style="padding:28px 22px;color:#8a3a3f;font:15px Georgia,serif;line-height:1.5;">'+
+        '<b>The loom snagged.</b><br><br>'+
+        String((ev && (ev.message||ev.error))||'unknown error')+
+        '<br><br><span style="color:#6b5d4f;font-size:13px;">(shown so the page is not silently blank)</span></div>';
+    }
+  });
+})();
+</script>
+<script>
+/* Books on the loom, in reading order. Add an id here after writing data/<id>.js */
+window.LOOM_BOOKS = [
+  "iliad-01",
+  "iliad-02",
+  "iliad-03",
+  "iliad-04",
+  "iliad-05",
+  "iliad-06"
+];
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-01"] = {
+  meta: {
+    id: "iliad-01",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 1,
+    title: "The Wrath of Achilles",
+    subtitle: "Book One — where the whole epic is wound: a plague, a stolen prize, and a nod that cannot be revoked",
+    tagline: "Scene · nine movements · the roster · then the Ninth Hour",
+    epigraph: {
+      text: "\"Rage—Goddess, sing the rage of Peleus' son Achilles, murderous, doomed, that cost the Achaeans countless losses…\"",
+      src: "Fagles, Iliad 1.1–2 — the poem's very first word is rage (mēnis)"
+    }
+  },
+
+  scene: [
+    "The Greek host has camped nine years on the windy plain before Troy, ships beached at their backs, the city's walls still unbroken. The war has settled into a grinding routine of raids and plunder — and the plunder is where this story starts.",
+    "Two captive women, taken in those raids, become the hinge of everything: <i>Chryseis</i>, awarded to <span class='who'>Agamemnon</span> the high king, and <i>Briseis</i>, awarded to <span class='who'>Achilles</span> the greatest fighter. The poem opens not on a battlefield but on a quarrel between the two most powerful Greeks over honor — and the god who makes them pay for it."
+  ],
+
+  terms: [
+    { gk: "mēnis (μῆνις)", def: "rage, wrath — and not ordinary anger but the towering, ruinous kind reserved elsewhere for gods. It is the <b>first word of the poem</b>; the whole Iliad is the story of one man's mēnis and its cost. (Note: the title <i>Iliad</i> means \"poem of Ilios/Troy\" — it does <i>not</i> mean \"wound.\")" },
+    { gk: "geras (γέρας)", def: "a prize of honor — the cut of plunder a hero is publicly awarded. Briseis and Chryseis are gera. To take a man's geras is not theft of property but a public stripping of worth." },
+    { gk: "timē (τιμή)", def: "honor, public standing — the thing a geras measures. The quarrel is fought over timē, not love: Agamemnon's seizure of Briseis is an assault on Achilles' rank before the whole army." }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "The priest comes with ransom",
+      what: "<p><span class='who'>Chryses</span>, a priest of <span class='god'>Apollo</span>, arrives at the Greek camp bearing gold to buy back his captured daughter <span class='who'>Chryseis</span>. The army wants to honor him — but <span class='who'>Agamemnon</span>, the high king, drives the old man off with threats.</p>",
+      why: "The first act of the epic is a king dishonoring a suppliant and a priest. Pride placed above reverence — the exact pattern that will repeat, at far greater cost, against Achilles."
+    },
+    {
+      n: "Movement II",
+      title: "Apollo's plague",
+      what: "<p>Chryses prays to his god. Apollo comes down <i>like nightfall</i> and for nine days his arrows fall on the camp — first the mules and dogs, then the men. The pyres of the dead burn without pause.</p>",
+      why: "A private insult becomes a public catastrophe. In Homer's world a slight to one priest can bleed an entire army — the human and the divine are never separate, and a god's anger is felt as plague, weather, and death."
+    },
+    {
+      n: "Movement III",
+      title: "The seer's dangerous truth",
+      what: "<p>On the tenth day <span class='who'>Achilles</span> calls an assembly. The seer <span class='who'>Calchas</span> will only name the cause if Achilles shields him — because the truth blames the king: Chryseis must be returned, unransomed, with sacrifice.</p>",
+      why: "Calchas's fear measures how dangerous truth is near power. Achilles, by guaranteeing his safety, sets himself against Agamemnon before a single word of the quarrel is spoken."
+    },
+    {
+      n: "Movement IV",
+      title: "The quarrel",
+      what: "<p>Agamemnon agrees to obey the god — but demands another prize to replace his loss. Achilles calls him greedy; Agamemnon, enraged, swears to take <span class='who'>Briseis</span>, the woman allotted to Achilles, to put the younger man in his place.</p>",
+      why: "Briseis is a token of <i>honor</i> (timē), not a love. To seize her publicly is to strip Achilles' worth before the whole army. This is the wound the poem opens on: the insult to a soldier's honor is the rage (mēnis) that begins, and drives, the entire story."
+    },
+    {
+      n: "Movement V",
+      title: "Athena stays his hand",
+      what: "<p>Achilles' hand goes to his sword. <span class='god'>Athena</span>, sent by <span class='god'>Hera</span>, appears to him alone and seizes his golden hair — checking the blow. Kill with words, not the blade, she tells him; greater gifts will come of restraint.</p>",
+      why: "The hero's rage is real but not blind — the gods intervene at the hinge of every choice. Achilles sheathes the sword but not the anger: he withdraws himself and his Myrmidons from the war entirely."
+    },
+    {
+      n: "Movement VI",
+      title: "Old Nestor tries to mediate",
+      what: "<p><span class='who'>Nestor</span>, oldest and most honeyed of tongue, counsels both men: Agamemnon should not seize the girl; Achilles should not defy his king. Neither listens.</p>",
+      why: "Wisdom is present and ignored. Homer shows that the quarrel comes not from a lack of counsel but from pride that will not bend — the tragedy is chosen, not stumbled into."
+    },
+    {
+      n: "Movement VII",
+      title: "Briseis taken · Achilles by the sea",
+      what: "<p>Heralds lead Briseis away; Achilles does not resist, but walks alone to the grey shore and weeps, calling out to his goddess-mother across the water.</p>",
+      why: "The mightiest warrior, reduced to a weeping son at the water's edge. Strength and grief held in one frame — the human note beneath the heroic, struck early so it can return at the poem's end."
+    },
+    {
+      n: "Movement VIII",
+      title: "The mother's petition · Zeus nods",
+      what: "<p><span class='who'>Thetis</span> rises from the sea. Achilles asks her to beg <span class='god'>Zeus</span> to turn the war for the Trojans — so the Greeks feel his absence. Thetis clasps Zeus's knees; he gives his great nod, the assent that cannot be revoked.</p>",
+      why: "The private wrath of one man becomes the will of the king of gods. Everything the army suffers next flows from this nod — Book 1 is the seed of all twenty-three books to come. <b>Watch this nod: in Book 2 it returns as a lying Dream.</b>"
+    },
+    {
+      n: "Movement IX",
+      title: "Strife on Olympus",
+      what: "<p><span class='god'>Hera</span> sees the bargain and rounds on Zeus; the gods nearly come to blows. Lame <span class='god'>Hephaestus</span> bustles about with wine and a limping jest, and the divine feast dissolves into laughter as the sun sets.</p>",
+      why: "The gods quarrel over the same pride as the mortals — but for them it ends in laughter and feasting, not death. The mirror is deliberate: the gods play at what, for men, is fatal."
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ How Book 1 frames the whole poem ✦",
+      lines: [
+        "The first word sung is <b>rage</b> — the poem announces its true subject is not the war but one man's wrath within it.",
+        "A <b>quarrel over a prize</b> opens the epic; a <b>reconciliation over a body</b> (Hector's, in Book 24) will close it. Book 1 sets the frame.",
+        "Apollo's arrows fall '<b>like nightfall</b>' — the first of the great similes, divine anger made into weather you can see."
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Achilles", epithet: "swift-footed, son of Peleus and the sea-goddess Thetis", role: "The greatest Greek warrior. Calls the assembly to end the plague, then is publicly robbed of Briseis. His rage — and his withdrawal from battle — is the engine of the whole epic.", tag: "The wrath itself" },
+      { name: "Agamemnon", epithet: "lord of men, high king of the Greek host", role: "Commander of all the Achaeans. Refuses Chryses, is forced to yield Chryseis, then seizes Briseis to salve his pride — the insult that breaks the army from within.", tag: "The provoker" },
+      { name: "Chryses", epithet: "priest of Apollo, father of Chryseis", role: "Comes with ransom for his daughter; is driven off. His prayer brings the plague that opens the book.", tag: "The spark" },
+      { name: "Calchas", epithet: "seer of the Greeks, reader of birds", role: "Names the plague's cause only under Achilles' protection — because the truth blames the king.", tag: "The truth-teller" },
+      { name: "Briseis", epithet: "captive woman allotted to Achilles", role: "A token of Achilles' honor more than a love. Taken from him publicly — the wound the poem opens on.", tag: "The honor-prize" },
+      { name: "Nestor", epithet: "old horseman of Pylos, sweetest voice of the Greeks", role: "Tries to mediate the quarrel with age and counsel. Both kings ignore him here — though in Book 2 his voice finally lands.", tag: "The ignored wisdom" },
+      { name: "Odysseus", epithet: "man of many turns", role: "Leads the ship returning Chryseis to her father with sacrifice — restoring the god's favor. A minor part here; the order-keeper of Book 2.", tag: "The fixer" }
+    ],
+    "Gods & Powers": [
+      { name: "Apollo", epithet: "the far-shooter, lord of plague and the bow", role: "Answers his priest's prayer and rains plague-arrows on the camp for nine days. The god whose slight starts everything.", tag: "The punisher", god: true },
+      { name: "Athena", epithet: "grey-eyed goddess of wisdom and war-craft", role: "Sent by Hera, alone seizes Achilles' hair and stays his sword — counseling words over the blade.", tag: "The restrainer", god: true },
+      { name: "Thetis", epithet: "silver-footed sea-goddess, mother of Achilles", role: "Rises from the waves to comfort her son and carries his plea to Zeus. Her petition turns one man's grievance into divine policy.", tag: "The petitioner", god: true },
+      { name: "Zeus", epithet: "father of gods and men, lord of the thunder", role: "Grants Thetis his unbreakable nod: the Greeks will suffer until Achilles is honored. The wrath becomes divine will.", tag: "The guarantor", god: true },
+      { name: "Hera", epithet: "queen of heaven, ever for the Greeks", role: "Sends Athena down to check Achilles; later rounds on Zeus over his bargain with Thetis.", tag: "The jealous queen", god: true },
+      { name: "Hephaestus", epithet: "the lame smith of Olympus", role: "Defuses the gods' quarrel with wine and a limping jest — the feast ends in laughter, not blows.", tag: "The peacemaker", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "ahead",
+      to: "iliad-02",
+      title: "The nod becomes the Dream",
+      note: "Zeus's unbreakable nod to Thetis here (Movement VIII) is not idle. In Book 2 he keeps it by sending Agamemnon a <i>lying Dream</i> — the first move to make the Greeks feel Achilles' absence. The wrath of Book 1 becomes the deception of Book 2."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · The plague upon the camp",
+      kind: "event",
+      q: "Arrows fall for nine days and the Greek dead burn in heaps. What roused Apollo's anger?",
+      opts: [
+        "Agamemnon plundered the god's temple at Troy",
+        "Agamemnon spurned the priest Chryses, refusing ransom for his daughter Chryseis",
+        "Achilles failed to offer the god due sacrifice",
+        "The Greeks broke a sworn truce with the Trojans"
+      ],
+      correct: 1,
+      truth: "<b>The priest Chryses.</b> He came with ransom for his daughter Chryseis; Agamemnon drove him off with threats. Chryses prayed, and Apollo came down 'like nightfall' to loose his plague-arrows — first the mules and dogs, then the men."
+    },
+    {
+      n: "II · The seer's dangerous truth",
+      kind: "event",
+      q: "Who names the cause of the plague before the assembly — and why does he tremble to speak?",
+      opts: [
+        "Nestor, fearing he would be called too old",
+        "Calchas the seer, fearing Agamemnon's wrath at the answer",
+        "Odysseus, fearing the army would mutiny",
+        "Thetis, fearing she betrayed the gods"
+      ],
+      correct: 1,
+      truth: "<b>Calchas.</b> He speaks only once Achilles swears to protect him — because the truth blames the high king. He reveals Chryseis must go back unransomed; Agamemnon obeys the god but demands recompense, and that demand lights the quarrel."
+    },
+    {
+      n: "III · The insult that makes the wrath",
+      kind: "event",
+      q: "Forced to surrender Chryseis, Agamemnon seizes a prize from Achilles to replace her. What does he take?",
+      opts: [
+        "Achilles' armor, forged by Hephaestus",
+        "Briseis, the woman allotted to Achilles as his honor-prize",
+        "Achilles' command over the Myrmidons",
+        "A share of the war's gold and bronze"
+      ],
+      correct: 1,
+      truth: "<b>Briseis.</b> Athena alone stays his sword; Achilles surrenders her but withdraws himself and his Myrmidons from the war. The seizure is the engine of the epic."
+    },
+    {
+      n: "IV · The meaning of the prize",
+      kind: "meaning",
+      q: "Why is the loss of Briseis a catastrophe for Achilles — what does she really represent?",
+      opts: [
+        "She is his wife, and losing her ends his bloodline",
+        "She is his geras — the public token of his honor (timē); to take her is to strip his worth before the army",
+        "She secretly commands the Myrmidons in his name",
+        "She alone knows the prophecy of his death"
+      ],
+      correct: 1,
+      truth: "<b>She is his honor made visible.</b> Briseis is a <i>geras</i>, the prize that measures <i>timē</i> — public standing. The quarrel is about rank, not romance: Agamemnon's seizure is an assault on Achilles' worth in front of everyone. That is why a warrior's rage can stop a war."
+    },
+    {
+      n: "V · The gods at the hinge",
+      kind: "meaning",
+      q: "Athena physically stops Achilles from killing Agamemnon. What is Homer showing about how this world works?",
+      opts: [
+        "That Achilles is a coward who needs a god's permission to act",
+        "That the gods intervene at the turning point of mortal choices — restraint here is divine, not merely human",
+        "That Athena wants Agamemnon dead and is saving him for herself",
+        "That the quarrel was never serious"
+      ],
+      correct: 1,
+      truth: "<b>The gods stand at the hinge of every choice.</b> Achilles' rage is real but not blind: at the decisive moment a goddess checks his hand. Homer's heroes act inside a world where the divine and the human are braided together — a pattern that returns when Athena guides Odysseus in Book 2."
+    },
+    {
+      n: "VI · The thread forward",
+      kind: "thread",
+      q: "Achilles begs Thetis to win Zeus's help, and Zeus nods his assent. How does this nod return in Book 2?",
+      opts: [
+        "Zeus forgets the promise and nothing comes of it",
+        "Zeus keeps it by sending Agamemnon a lying Dream, luring the Greeks to attack unready",
+        "Zeus heals the plague and reconciles the kings",
+        "Zeus returns Briseis to Achilles at once"
+      ],
+      correct: 1,
+      truth: "<b>It becomes the lying Dream.</b> Zeus's unbreakable nod here is the vow he keeps in Book 2 by sending a false Dream in Nestor's shape, baiting Agamemnon into a confident, unready assault. The private wrath of Book 1 is now the will of Zeus, moving the whole army."
+    }
+  ]
+};
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-02"] = {
+  meta: {
+    id: "iliad-02",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 2,
+    title: "The False Dream & the Muster",
+    subtitle: "Book Two — Zeus keeps his vow, the army nearly bolts, and the host is counted",
+    tagline: "Scene · nine movements · the Catalogue at the close · then the Ninth Hour",
+    epigraph: {
+      text: "\"Now the great array of gods and chariot-driven men slept all night long, but the peaceful grip of sleep could not hold Zeus…\"",
+      src: "Fagles, Iliad 2.1–2 — the book opens on the one mind awake on Olympus"
+    }
+  },
+
+  scene: [
+    "Night lies over the long Greek camp, the beached ships drawn up on the windy plain of Troy. The quarrel of Book 1 has settled into a dangerous quiet — <i>Achilles sulks in his tent by the sea, his Myrmidons idle beside him.</i> The army does not yet know it has lost its best man.",
+    "On Olympus the gods and mounted men sleep. <i>Only Zeus lies awake</i>, turning over how to honor the promise he gave Thetis: to make the Greeks feel the absence of Achilles. His weapon will not be thunder. It will be a lie, whispered into a sleeping king's ear."
+  ],
+
+  terms: [
+    { gk: "peira (πεῖρα)", def: "a test, a trial of someone's resolve. Agamemnon's disastrous idea to <i>test</i> the army's heart is a peira — and it nearly ends the war." },
+    { gk: "skēptron (σκῆπτρον)", def: "the scepter / staff. Whoever holds it has the right to speak in assembly. Odysseus wielding Agamemnon's skēptron is wielding legitimate authority itself." },
+    { gk: "timē (τιμή)", def: "honor, public worth — the thing the whole Book-1 quarrel was fought over. Thersites voices the same grievance about timē that Achilles did, but from the wrong mouth." }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "The Lying Dream",
+      what: "<p><span class='god'>Zeus</span>, sleepless, summons a deceitful <span class='god'>Dream</span> and sends it down in the shape of old <span class='who'>Nestor</span> — the voice Agamemnon most trusts. It bends over the sleeping king: <i>arm the Greeks at once, for today Troy will fall.</i></p>",
+      why: "The promise to Thetis now moves. Zeus does not strike the Greeks — he <i>tempts</i> them, baiting Agamemnon into a confident attack he is not ready to make. In Homer's world a god deceiving a mortal is fair policy, and the lie wears a friend's face."
+    },
+    {
+      n: "Movement II",
+      title: "The king's strange test (peira)",
+      what: "<p><span class='who'>Agamemnon</span> wakes sure of victory, gathers his council, and announces a plan: before the true muster he will <i>test</i> the army by ordering them to give up and sail home — trusting the captains to hold them back.</p>",
+      why: "A reckless idea built on a false dream. Agamemnon's judgment is already corroded — he stages a loyalty test at the exact moment the war hangs in the balance. The gap between what he <i>thinks</i> he controls and what he actually does is the engine of the comedy-then-terror that follows."
+    },
+    {
+      n: "Movement III",
+      title: "The test backfires",
+      what: "<p>Agamemnon tells the assembly the war is lost — go home. Instead of protest, <i>the whole host leaps up in joy</i> and stampedes for the ships, raising a shout, hauling the hulls toward the sea.</p>",
+      why: "Nine years of weariness erupt at once. Homer shows an army one breath from collapse — the discipline of the Greeks is far thinner than their glory suggests. The 'unsinkable' expedition almost sinks itself in a single careless speech."
+    },
+    {
+      n: "Movement IV",
+      title: "Hera and Athena move",
+      what: "<p><span class='god'>Hera</span>, who will not see the Greeks sail home in shame, sends <span class='god'>Athena</span> streaking down. Athena finds <span class='who'>Odysseus</span> — standing still, sick at heart — and orders him to stop the rout.</p>",
+      why: "The gods correct what the gods began. The same divine machinery that loosed the Dream now saves the army from it: the war must continue on its appointed schedule. Mortal recovery here is really a goddess working through her chosen man."
+    },
+    {
+      n: "Movement V",
+      title: "Odysseus and the scepter",
+      what: "<p>Odysseus takes up Agamemnon's ancestral <span class='who'>scepter</span> and goes through the crowd: <i>to the kings, soft persuading words; to the shouting commoners, the staff across the back.</i> He herds the rout from the ships back to assembly.</p>",
+      why: "Two registers of authority — reason for the highborn, the rod for the rest. The scepter's own lineage (forged by Hephaestus, passed god to king to king) is legitimacy made into an object. Homer is showing you exactly how the chain of command is enforced, and who is allowed to speak within it."
+    },
+    {
+      n: "Movement VI",
+      title: "Thersites the railer",
+      what: "<p><span class='who'>Thersites</span> — the ugliest, lowest-born man at Troy — alone keeps jeering, mocking Agamemnon's greed. The grievance is real (it is Achilles' own), but from the wrong mouth. Odysseus beats him bloody with the scepter, and <i>the whole army laughs.</i></p>",
+      why: "Homer lets us <i>hear</i> the complaint about the kings' greed — then closes the door on who may voice it. Order is restored not by answering the grievance but by silencing the man. The same words that ennobled Achilles, in Thersites' mouth, earn only a beating. Rank holds."
+    },
+    {
+      n: "Movement VII",
+      title: "The rally · the omen at Aulis recalled",
+      what: "<p>Odysseus, then <span class='who'>Nestor</span>, steady the host. Odysseus recalls the omen at <span class='who'>Aulis</span>: a snake devoured eight sparrow-chicks and their mother — nine in all — which <span class='who'>Calchas</span> read as nine years of war, with Troy to fall in the tenth. Nestor urges Agamemnon to range the men by tribe and clan.</p>",
+      why: "The army is re-bound to its purpose by memory and prophecy. The tenth year has come — the omen says <i>now</i>. Despair is turned back into resolve not with new hope but with an old, half-forgotten promise."
+    },
+    {
+      n: "Movement VIII",
+      title: "Sacrifice · the prayer refused",
+      what: "<p>Agamemnon offers an ox to Zeus and prays to take Troy by nightfall. <i>Zeus accepts the sacrifice but not the prayer</i> — ordaining more sorrow. The army feasts, then pours onto the plain in its armor.</p>",
+      why: "The dramatic irony lands here: the king prays for the very victory the false Dream promised, and the god silently refuses it. <b>You</b> know what Agamemnon cannot. From this point the reader watches the Greeks march out already certain their confidence is borrowed against a lie."
+    },
+    {
+      n: "Movement IX",
+      title: "The Catalogue of Ships",
+      what: "<p>Homer invokes the Muses and unrolls the muster: <i>every Greek contingent, its captains, and the count of its ships</i> — the census of the whole war. Then <span class='god'>Iris</span> carries word to Troy; <span class='who'>Hector</span> leads out the Trojans and their allies, named in a matching catalogue. The two hosts close on the plain.</p>",
+      why: "The famous 'slog' — but structurally the hinge of the poem: the private quarrel of Book 1 is over, and now the <i>whole world</i> goes to war. Homer pauses to weigh both sides before the first blow of Book 3. The hardest pages of the Iliad, and now behind you."
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ The great similes — how Homer makes you see the army ✦",
+      lines: [
+        "As <b>fire</b> devours a forest on a mountain and the blaze is seen from far off — so the bronze of the marching host flashed up to the sky.",
+        "As flocks of <b>birds</b>, geese and cranes and long-necked swans, settle clamoring on a meadow — so the tribes poured onto the plain of Scamander, the earth thundering under them.",
+        "As thick as the <b>leaves and flowers</b> of spring, as dense as swarming <b>flies</b> about the milk-pails — so many Greeks stood against Troy, hungry for war."
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Agamemnon", epithet: "lord of men, high king", role: "Receives the lying Dream and believes Troy will fall today. His <i>peira</i> — the loyalty test — backfires into a near-rout; later prays for a victory Zeus has already refused.", tag: "The deceived" },
+      { name: "Odysseus", epithet: "man of many turns, sacker of cities", role: "With Athena at his side, takes up the scepter and turns the fleeing army back — kings by persuasion, commoners by the rod. Beats down Thersites and rallies the host.", tag: "The order-keeper" },
+      { name: "Nestor", epithet: "old horseman of Pylos, sweetest voice of the Greeks", role: "Backs Odysseus, reaffirms the omen of Troy's fall, and counsels marshaling the army by tribe and clan. Here his honeyed speech finally <i>works</i> — frightened men, not proud kings.", tag: "The counselor" },
+      { name: "Thersites", epithet: "ugliest man at Troy, the lowborn railer", role: "The one commoner who dares jeer at the kings — voicing Achilles' own grievance. Beaten bloody by Odysseus; the army laughs. Rank restored.", tag: "The silenced voice" },
+      { name: "Hector", epithet: "breaker of horses, prince of Troy", role: "Warned by Iris, leads the Trojans out to meet the mustered Greeks as the book closes.", tag: "The Trojan answer" }
+    ],
+    "Gods & Powers": [
+      { name: "Zeus", epithet: "father of gods and men", role: "Keeps his vow to Thetis by sending the false Dream — a victory promised only to lure the Greeks into an unready attack. Accepts Agamemnon's ox but not his prayer.", tag: "The schemer", god: true },
+      { name: "The Dream", epithet: "Zeus's lying messenger, in Nestor's shape", role: "A power, not a person — sent to whisper false certainty into Agamemnon's sleep. The hinge of the whole deception.", tag: "The lie made flesh", god: true },
+      { name: "Athena", epithet: "grey-eyed goddess of war-craft", role: "Sent by Hera, stands at Odysseus' shoulder and spurs him to halt the rout — the divine hand behind the army's recovery.", tag: "The rally", god: true },
+      { name: "Hera", epithet: "queen of heaven, ever for the Greeks", role: "Will not let the Achaeans sail home in shame; sends Athena down to stop the flight to the ships.", tag: "The intervener", god: true },
+      { name: "Iris", epithet: "rainbow-messenger of the gods", role: "Carries word to Troy that the Greeks are marshaling, rousing Hector to form up in answer.", tag: "The herald", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "The Dream is Book 1's nod, kept",
+      note: "The lying Dream that opens this book is Zeus making good on the nod he gave <span class='who'>Thetis</span> in Book 1 (Movement VIII). Achilles' private grievance has become the king of gods' deception of the whole army."
+    },
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "Thersites borrows Achilles' grievance",
+      note: "When Thersites jeers that Agamemnon is greedy, he is voicing the <i>exact</i> complaint Achilles made in Book 1 — but from the lowest mouth in the camp. Homer lets us hear it again, then beats it silent: rank decides who may say a true thing."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · A god's design",
+      kind: "meaning",
+      q: "Zeus sends Agamemnon a lying Dream promising Troy will fall that very day. Why deceive his own favored Greeks?",
+      opts: [
+        "To punish Agamemnon's greed over Chryseis",
+        "To honor his vow to Thetis — let the Achaeans bleed in Achilles' absence",
+        "Because Hera tricked him into it",
+        "To end the long war quickly and kindly"
+      ],
+      correct: 1,
+      truth: "<b>His vow to Thetis.</b> In Book 1 Zeus nodded his promise: while Achilles sulks, the Greeks must suffer so his absence is felt. The false Dream lures Agamemnon to attack overconfident and unready."
+    },
+    {
+      n: "II · The test that misfires",
+      kind: "event",
+      q: "Agamemnon tests the army's heart by ordering them to give up and sail home. What do the men do?",
+      opts: [
+        "Refuse angrily and demand to fight on",
+        "Leap up in joy and stampede for the ships",
+        "Fall silent, waiting for Achilles to speak",
+        "Turn on Agamemnon and threaten mutiny"
+      ],
+      correct: 1,
+      truth: "<b>They bolt for the ships.</b> The <i>peira</i> backfires: nine years of weariness erupt at once and the host nearly sails. Homer shows an army one careless speech from collapse."
+    },
+    {
+      n: "III · The rout turned back",
+      kind: "event",
+      q: "Who halts the flight to the ships, and by what means?",
+      opts: [
+        "Achilles, roused from his tent",
+        "Odysseus — scepter in hand, Athena at his shoulder",
+        "Nestor, by sheer age and counsel alone",
+        "Menelaus, shaming the men back"
+      ],
+      correct: 1,
+      truth: "<b>Odysseus.</b> Hera sends Athena; Athena finds Odysseus, who takes up Agamemnon's scepter, checking the kings with soft words and the commoners with the staff, driving the rout back to assembly."
+    },
+    {
+      n: "IV · The lowborn voice",
+      kind: "meaning",
+      q: "Thersites jeers at the kings and is beaten bloody by Odysseus, and the army laughs. What is Homer showing?",
+      opts: [
+        "That Thersites is secretly right and the true hero",
+        "That rank holds — the lowborn voice is silenced, hierarchy restored",
+        "That Odysseus is a cruel villain",
+        "That the war has become a joke"
+      ],
+      correct: 1,
+      truth: "<b>Rank is upheld.</b> Thersites voices a real grievance — Achilles' own — but ugly, from the wrong mouth. His beating and the army's laughter restore the chain of command. Homer lets us hear the complaint, then closes the door on who may speak it."
+    },
+    {
+      n: "V · The omen at Aulis",
+      kind: "event",
+      q: "Odysseus recalls a snake devouring eight sparrow-chicks and their mother. What did Calchas read in it?",
+      opts: [
+        "Nine heroes would die before the walls",
+        "Nine years of war, with Troy to fall in the tenth",
+        "Nine ships would be lost on the voyage home",
+        "Nine gods would turn against the Greeks"
+      ],
+      correct: 1,
+      truth: "<b>Nine years, Troy in the tenth.</b> Eight chicks plus the mother — nine devoured — read as nine years of war and victory in the tenth. Odysseus recalls it to turn the army's despair back into resolve: the tenth year has come."
+    },
+    {
+      n: "VI · The thread back to Book 1",
+      kind: "thread",
+      q: "The lying Dream that opens Book 2 is Zeus keeping a promise made in Book 1. To whom did he make it, and what was it?",
+      opts: [
+        "To Hera, that he would end the war swiftly",
+        "To Thetis, that the Greeks would suffer in Achilles' absence until he was honored",
+        "To Agamemnon, that Troy would fall in the tenth year",
+        "To Apollo, that he would avenge the slighted priest"
+      ],
+      correct: 1,
+      truth: "<b>To Thetis.</b> In Book 1, Achilles' mother clasped Zeus's knees and won his unbreakable nod: the Greeks must feel her son's absence. The Dream here is that vow in motion — Book 1's wrath becoming Book 2's deception."
+    }
+  ]
+};
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-03"] = {
+  meta: {
+    id: "iliad-03",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 3,
+    title: "The Duel for Helen",
+    subtitle: "Book Three — Paris challenges, then flinches; a single combat is sworn to end the war; Aphrodite steals it back",
+    tagline: "Scene · ten movements · the View from the Wall · then the Ninth Hour",
+    epigraph: {
+      text: "The Trojans came on with a clamor and a cry, like wild birds — the Achaeans came on in silence, breathing fury, hearts set on standing by each other.",
+      src: "after Fagles, Iliad 3.1–10 — the two hosts close, and the contrast of their advance opens the book. (Paraphrase in the app's voice; not wrapped as a verbatim quotation.)"
+    }
+  },
+
+  scene: [
+    "The mustered hosts of Book 2 finally meet. The Trojans pour forward <i>shrieking like cranes</i> that flee the winter down to the streams of Ocean; the Greeks come on in a grim, deliberate silence, dust rising thick enough to hide a man at arm's length. Two armies, nine years in the making, about to touch.",
+    "And then — out of the Trojan front struts the man who started it all. <span class='who'>Paris</span>, a panther-skin slung over his shoulder, bow and blade and two bronze-headed spears, swaggering down the line to challenge the best of the Argives. For one strange morning the whole vast war narrows to a single quarrel between two husbands of one woman. The plain holds its breath."
+  ],
+
+  terms: [
+    { gk: "Alexandros (Ἀλέξανδρος)", def: "Paris's other name — the one Homer uses most. The pretty prince of Troy whose theft of Helen lit the war. Watch how the poem keeps splitting him: dazzling to look at, hollow in the fight." },
+    { gk: "horkia (ὅρκια)", def: "the sworn oaths — the solemn truce cut over slaughtered lambs. The word names not just promises but the rite that binds them. Menelaus insists Priam himself swear, <i>because Priam's sons are reckless and faithless.</i>" },
+    { gk: "teichoskopia (τειχοσκοπία)", def: "\"the viewing from the wall.\" The poem's name for the famous scene where Helen, on the Scaean gate, names the Greek captains for old Priam — letting Homer introduce his heroes through the eyes of the woman they came for." },
+    { gk: "aidōs (αἰδώς)", def: "shame, the sense of how one is seen. Hector hurls it at Paris; Helen turns it on herself. The whole book runs on it — who can bear to be looked at, and who hides." }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "Paris struts — and recoils",
+      what: "<p><span class='who'>Paris</span> strides out ahead of the Trojans, daring any Greek champion to face him man to man. <span class='who'>Menelaus</span> — the wronged husband — sees him and leaps from his chariot <i>like a lion lighting on a carcass.</i> At the sight of him, Paris's nerve fails: he shrinks back into the ranks <i>like a man who recoils from a snake on a mountain path.</i></p>",
+      why: "Homer's first verdict on Paris, delivered in two similes. He has beauty enough to start a war and not the stomach to answer for it. The man who took Helen cannot bear to look at the man he took her from. The whole tragedy is sketched in ten lines: a war's worth of suffering set going by someone who flinches."
+    },
+    {
+      n: "Movement II",
+      title: "Hector's scorn",
+      what: "<p><span class='who'>Hector</span> rounds on his brother — <i>beautiful, woman-mad, beguiler,</i> better never born than such a shame to Troy. Stung, Paris answers honestly: his looks are a gift of the gods, not his to refuse. Then he makes an offer — set him and Menelaus alone between the armies <i>to fight for Helen and all her wealth.</i> Winner takes her; both sides swear friendship and part in peace.</p>",
+      why: "Paris is vain and shallow, but not a coward in the simplest sense — shamed, he proposes the one thing that could end the war honestly. The contrast of the brothers is the spine of the Trojan side: Hector carries the city's weight, Paris its guilt. And the offer raises the book's terrible hope — that all this might be settled by two men instead of two nations."
+    },
+    {
+      n: "Movement III",
+      title: "The terms accepted",
+      what: "<p>Hector steps between the lines to announce the challenge; the Greeks loose arrows at him until <span class='who'>Agamemnon</span> calls them off. <span class='who'>Menelaus</span> accepts at once — but demands the oaths be sworn by <span class='who'>Priam</span> himself, <i>since Priam's sons are arrogant and not to be trusted.</i> Heralds are sent to the city for sacrificial lambs and to fetch the old king.</p>",
+      why: "Menelaus's condition is the hinge the rest of the book — and the war — hangs on. He does not trust the young Trojans to keep faith, so he binds the truce to the one Trojan whose word still holds. Homer plants the doubt out loud: oaths sworn here are already shadowed by the question of whether Troy can keep them."
+    },
+    {
+      n: "Movement IV",
+      title: "Iris calls Helen to the wall",
+      what: "<p><span class='god'>Iris</span>, in the shape of Priam's daughter <span class='who'>Laodice</span>, finds <span class='who'>Helen</span> in her chamber — <i>weaving into a great web the battles of Greeks and Trojans suffered for her sake.</i> Iris tells her: your two husbands will fight for you alone. <i>Sweet longing</i> for her first husband, her parents, her city floods Helen, and she goes veiled and weeping to the Scaean gates.</p>",
+      why: "One of the poem's quietest, deepest strokes: Helen is weaving the war into a tapestry — its own poet, watching herself become the cause. Homer hands her grief and self-knowledge rather than mere blame. She does not want this war fought for her; she comes to the wall mourning the world she broke."
+    },
+    {
+      n: "Movement V",
+      title: "The elders, and the cause made flesh",
+      what: "<p>On the tower sit Priam and the old men of Troy, past fighting, <i>voices thin and sweet as cicadas in the leaves.</i> They watch Helen climb the wall and murmur together: no wonder Greeks and Trojans suffer years of pain for such a woman — <i>she is terribly like the immortal goddesses to look on.</i> And yet, they add, let her sail home, before she becomes a curse to us and our children.</p>",
+      why: "The most economical defense of the whole war Homer ever writes. The elders do not excuse the cost — they measure it and still understand it. Helen's beauty is made <i>visible</i> in their faces, not described to us directly. And in the same breath they wish her gone: even the men who grasp why the war is fought want it over."
+    },
+    {
+      n: "Movement VI",
+      title: "The View from the Wall",
+      what: "<p><span class='who'>Priam</span> calls Helen near, gently — <i>I do not blame you; I blame the gods who drove this war upon me</i> — and asks her to name the Greek captains. She names <span class='who'>Agamemnon</span>, broad and kingly, once her brother-in-law; <span class='who'>Odysseus</span>, a head shorter but deeper-chested, whose words once fell <i>like winter snowflakes;</i> towering <span class='who'>Ajax</span>, bulwark of the Achaeans; and <span class='who'>Idomeneus</span> of Crete. Then she looks for her own brothers, <span class='who'>Castor</span> and <span class='who'>Polydeuces</span> — and cannot find them.</p>",
+      why: "The <i>teichoskopia</i>: Homer introduces his heroes through the eyes of the woman they came for, and every name carries her history with it. Then the gut-punch — Helen wonders if her brothers stay away for shame of her, not knowing they are already dead in Lacedaemon: <i>the life-giving earth already held them fast.</i> She speaks of the living; we hear the dead. No one on the wall knows but us."
+    },
+    {
+      n: "Movement VII",
+      title: "The oaths are cut",
+      what: "<p>The heralds bring lambs and wine; <span class='who'>Priam</span> and <span class='who'>Antenor</span> drive out to the plain. <span class='who'>Agamemnon</span> and <span class='who'>Odysseus</span> ready the rite — wine poured, lambs' throats cut — and swear the great oath: if <span class='who'>Paris</span> kills Menelaus, the Trojans keep Helen and her wealth and the Greeks sail home; if <span class='who'>Menelaus</span> kills Paris, Troy gives Helen back with recompense. Then Priam, <i>unable to watch his own son fight,</i> turns his horses and rides back to the city.</p>",
+      why: "The truce made solemn — and the old father's failure of nerve that makes it human. Priam cannot bear to see the duel because he already half-knows how Troy's fortunes run. The oath is binding, witnessed, sworn over blood; the reader who remembers Book 2 knows the gods have other plans. Everything is now in place for the war to end — which is exactly why it cannot."
+    },
+    {
+      n: "Movement VIII",
+      title: "The duel",
+      what: "<p>Lots are shaken in a helmet; <span class='who'>Paris</span> draws the first throw. The two arm and close. Paris hurls — his spear sticks fast in Menelaus's shield, point bent. <span class='who'>Menelaus</span> prays to Zeus and throws, driving clean through shield and breastplate; Paris twists aside from death. Menelaus draws his sword and brings it down on the helmet-ridge — and <i>the blade shatters into pieces in his hand.</i></p>",
+      why: "Menelaus has justice, fury, and the better of every exchange — and his weapon breaks at the killing stroke. Homer lets us feel a righteous victory slipping. The duel is being won by the wronged man, and something keeps Paris alive a half-second too long. That \"something\" is about to put on a face."
+    },
+    {
+      n: "Movement IX",
+      title: "Aphrodite steals the kill",
+      what: "<p>Bare-handed, <span class='who'>Menelaus</span> seizes Paris by the horsehair crest and drags him toward the Greek lines, <i>strangling him with his own embroidered chin-strap.</i> He has him — and then <span class='god'>Aphrodite</span> snaps the ox-hide strap; the empty helmet comes away in Menelaus's fist. As he lunges with the spear to finish it, the goddess <i>wraps Paris in a thick mist and sets him down in his own perfumed, vaulted bedchamber.</i></p>",
+      why: "The war's hinge, snatched out of mortal hands. Menelaus wins by every human measure and is robbed of the kill by the same goddess who gave Paris Helen in the first place. Homer's gods do not reward merit — they protect their favorites. The duel that was meant to <i>end</i> the war ends instead with the guilty man safe in his bed and nothing settled."
+    },
+    {
+      n: "Movement X",
+      title: "Bedchamber and battlefield",
+      what: "<p><span class='god'>Aphrodite</span>, disguised as an old wool-comber, summons <span class='who'>Helen</span> from the wall to Paris's bed. Helen sees through the disguise and refuses, bitter — <i>go sit by him yourself.</i> The goddess threatens her cold, and Helen, afraid, obeys. She rebukes Paris (better you had died), but he answers with desire and draws her down. Out on the plain <span class='who'>Menelaus</span> prowls like a wild beast hunting Paris, and <span class='who'>Agamemnon</span> proclaims the victory won and demands Helen and the recompense — the field belongs to the Greeks, and no one to fight.</p>",
+      why: "The book's devastating close: the man who lost the duel is rewarded with Helen's bed, while the winner rages over an empty field. Helen's open contempt — for Paris and for the goddess who owns her — is some of the sharpest speech in the poem. And the war hangs unresolved on a broken-off victory. The oaths still stand; the kill never landed. <b>Something will have to break the truce.</b>"
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ How Homer makes you see the two armies — and the man who flinched ✦",
+      lines: [
+        "The Trojans came on with a <b>clamor</b>, like cranes that flee the winter and the sudden rains, screaming down the sky toward the streams of Ocean.",
+        "The Achaeans came on in <b>silence</b>, breathing fury, hearts set on standing by each other — no sound but the tramp of men.",
+        "As a man stumbling on a <b>snake</b> in a mountain glen springs back, limbs shaking, the blood drained from his cheeks — so Paris shrank back into the proud Trojan ranks, in dread of Menelaus.",
+        "And the old men on the wall, voices <b>thin and sweet as cicadas</b> in the leaves, said low to one another: who could blame them, to suffer so long for such a woman?"
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Paris", epithet: "Alexandros, prince of Troy, the pretty one", role: "Challenges the Greeks, then recoils from Menelaus; shamed by Hector, offers single combat for Helen. Loses the duel and is whisked from death by Aphrodite to his own bedchamber — and Helen's bed.", tag: "The cause, who flinches" },
+      { name: "Menelaus", epithet: "lord of the war-cry, the wronged husband", role: "Leaps to face Paris like a lion. Wins every exchange of the duel — until his sword shatters and the goddess steals his kill. Ends the book hunting an enemy who has vanished.", tag: "The robbed victor" },
+      { name: "Hector", epithet: "breaker of horses, prince of Troy", role: "Scorns his brother's cowardice, brokers the terms of the duel, and steps unarmed between the armies to set it in motion. Troy's conscience to Paris's shame.", tag: "The brother who carries it" },
+      { name: "Helen", epithet: "of the white arms, born of Zeus", role: "Weaves the war into a tapestry; called to the wall, she names the Greek captains for Priam, mourning the brothers she cannot find. Refuses, then yields, to Aphrodite — and to Paris.", tag: "The woven cause" },
+      { name: "Priam", epithet: "old king of Troy", role: "Receives Helen on the wall without blame, swears the great oath over the lambs — then cannot bear to watch his son fight, and rides back to the city.", tag: "The father who looks away" },
+      { name: "Agamemnon", epithet: "lord of men, high king", role: "Calls off the Greek archers, helps cut the oaths, and at the book's close proclaims Menelaus the victor — demanding Helen and recompense over an empty field.", tag: "The claimant" },
+      { name: "Antenor", epithet: "wise Trojan elder", role: "Drives out beside Priam to witness the oath; earlier recalled hosting Odysseus and Menelaus as envoys, and Odysseus's snowfall of words.", tag: "The witness" }
+    ],
+    "Gods & Powers": [
+      { name: "Aphrodite", epithet: "goddess of desire, Paris's patron", role: "Snaps the chin-strap to save Paris from Menelaus's hands and hides him in mist; then drives a reluctant Helen back to his bed, threatening her when she resists.", tag: "The thief of the kill", god: true },
+      { name: "Iris", epithet: "rainbow-messenger of the gods", role: "In Laodice's shape, calls Helen from her loom to the wall to watch her two husbands fight for her — setting the View from the Wall in motion.", tag: "The summons", god: true },
+      { name: "Zeus", epithet: "father of gods and men", role: "Invoked in the oaths and in Menelaus's battle-prayer. Silent here — but the reader of Book 2 knows he has refused to let this war end easily.", tag: "The silent witness", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "back",
+      to: "iliad-02",
+      title: "The muster meets — and the refused prayer hangs over it",
+      note: "The two hosts numbered in Book 2's Catalogue now stand face to face. And the duel that could end it all is shadowed by Book 2's close: <span class='god'>Zeus</span> <i>accepted Agamemnon's ox but not his prayer</i> for a quick victory. A clean ending here was never in the cards — which is why a goddess steals the kill."
+    },
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "A different woman, the same engine",
+      note: "Book 1's quarrel raged over <span class='who'>Briseis</span> — a captive woman as a marker of <i>timē</i>. Book 3 steps back to the root of the whole war: <span class='who'>Helen</span>, the first woman taken. Homer rhymes the two — every great rupture in this poem turns on a woman claimed, and on the honor men read into the claim."
+    },
+    {
+      dir: "ahead",
+      to: "iliad-04",
+      title: "Oaths that still stand",
+      note: "The duel is won and lost, but the kill never landed and the sworn truce was never broken — only suspended. Two armies face each other with the war formally <i>almost</i> over and nothing actually resolved. Such a peace, sworn over blood while the gods want war, does not tend to last the morning."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · The strut and the flinch",
+      kind: "event",
+      q: "Paris swaggers out to challenge the best of the Greeks. What happens the moment Menelaus rises to face him?",
+      opts: [
+        "Paris hurls his spear and the duel begins at once",
+        "Paris loses his nerve and shrinks back into the Trojan ranks",
+        "Hector steps in front of Paris to fight in his place",
+        "Aphrodite hides Paris in mist before a blow is struck"
+      ],
+      correct: 1,
+      truth: "<b>He recoils.</b> Homer gives it a simile — Paris springs back <i>like a man who's stumbled on a snake.</i> The prince who took Helen cannot face the husband he took her from. His beauty started a war; his nerve can't answer for it."
+    },
+    {
+      n: "II · The brothers",
+      kind: "event",
+      q: "After Hector shames him for cowardice, what does Paris propose?",
+      opts: [
+        "To flee Troy by night and give Helen back in secret",
+        "Single combat with Menelaus — winner takes Helen and her wealth, the war ends",
+        "That Hector fight Menelaus in his place",
+        "A mass battle to settle the war that very day"
+      ],
+      correct: 1,
+      truth: "<b>A duel for Helen.</b> Stung by Hector, Paris offers the one thing that could end the war honestly: he and Menelaus alone, the winner to keep Helen and her treasure, both armies sworn to peace. Vain, but not without a sense of his own guilt."
+    },
+    {
+      n: "III · The View from the Wall",
+      kind: "event",
+      q: "Called to the Scaean gate, what does Helen do for old Priam — and what does she discover?",
+      opts: [
+        "She begs him to surrender the city, and he refuses",
+        "She names the Greek captains below, and realizes she cannot find her brothers Castor and Polydeuces",
+        "She points out where the Greek ships are weakest",
+        "She swears the oath of truce in Priam's place"
+      ],
+      correct: 1,
+      truth: "<b>The teichoskopia.</b> Helen names Agamemnon, Odysseus, Ajax, Idomeneus — Homer introducing his heroes through her eyes. Then she looks for her brothers and cannot see them, wondering if they stay away for shame of her. She doesn't know they're already dead: <i>the earth held them fast in Lacedaemon.</i>"
+    },
+    {
+      n: "IV · Beauty and ruin",
+      kind: "meaning",
+      q: "The old men on the wall watch Helen approach and murmur together. What is Homer showing through them?",
+      opts: [
+        "That the Trojans secretly want to kill Helen",
+        "That her beauty makes the long war comprehensible — even as they wish her gone before she ruins them",
+        "That the elders blame Helen entirely for the war",
+        "That the gods have disguised themselves among the elders"
+      ],
+      correct: 1,
+      truth: "<b>The cause made visible.</b> Homer never describes Helen's face — he shows it in the elders' reaction: no wonder men suffer years for such a woman. And in the same breath they wish her sailed home. Even those who understand the war's reason want it over. Beauty and ruin in one glance."
+    },
+    {
+      n: "V · The stolen kill",
+      kind: "event",
+      q: "Menelaus has Paris by the helmet-strap, dragging him toward the Greek lines. How does the duel actually end?",
+      opts: [
+        "Paris breaks free and kills Menelaus with a hidden dagger",
+        "Hector calls a halt and the two part as equals",
+        "Aphrodite snaps the strap and whisks Paris away in mist to his bedchamber",
+        "Menelaus strangles Paris and wins outright"
+      ],
+      correct: 2,
+      truth: "<b>Aphrodite steals him.</b> Menelaus wins by every human measure — spear through the breastplate, then strangling Paris with his own chin-strap — and the goddess snaps the strap and hides Paris in mist, setting him down safe in his perfumed bedroom. Homer's gods protect favorites, not the deserving."
+    },
+    {
+      n: "VI · The thread back to Book 2",
+      kind: "thread",
+      q: "A duel was sworn to end the whole war cleanly. Why does the careful reader of Book 2 already know it cannot?",
+      opts: [
+        "Because Achilles refused to fight in the duel",
+        "Because Zeus accepted Agamemnon's sacrifice but refused his prayer for a quick victory",
+        "Because Hector had secretly broken the oath beforehand",
+        "Because the Catalogue of Ships predicted ten more years of war"
+      ],
+      correct: 1,
+      truth: "<b>The refused prayer.</b> At the close of Book 2, <i>Zeus took the ox but not the plea</i> — ordaining more sorrow, not a swift end. So when Book 3 offers to settle everything by single combat, we already know the gods won't allow it. The stolen kill is that refusal coming true."
+    }
+  ]
+};
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-04"] = {
+  meta: {
+    id: "iliad-04",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 4,
+    title: "The Truce Erupts in War",
+    subtitle: "Book Four — the gods vote for war over wine; an arrow breaks the oaths; the poem's first blood soaks the plain",
+    tagline: "Scene · nine movements · the ranging of the ranks · then the Ninth Hour",
+    epigraph: {
+      text: "The gods sat with Zeus on his golden floor, and Hebe poured them nectar, as they lifted their cups to one another and looked down on the city of Troy.",
+      src: "after Fagles, Iliad 4.1–4 — the book opens not on the battlefield but at the banquet above it: the fate of two armies decided over drinks. (Paraphrase in the app's voice; not wrapped as a verbatim quotation.)"
+    }
+  },
+
+  scene: [
+    "Down on the plain, nothing has moved since Book 3 broke off. <span class='who'>Menelaus</span> still prowls the dueling-ground for an enemy who vanished into mist; <span class='who'>Agamemnon</span> has claimed the victory out loud; two armies stand sworn to a truce that is neither honored nor broken. The war is balanced on the edge of ending.",
+    "And so Homer lifts the camera all the way up. On Olympus the gods are at their cups, and <span class='god'>Zeus</span> — needling his wife on purpose — wonders aloud: should we let the fighting end here? Menelaus has won; let Helen sail home and Priam's city stand. What follows is one of the coldest scenes in the poem: the survival of Troy haggled over like a market price, and a goddess sent down to make sure the peace dies first."
+  ],
+
+  terms: [
+    { gk: "horkia (ὅρκια)", def: "the sworn oaths of Book 3 — cut over lambs' blood, witnessed by Zeus. This book is their funeral. Watch <i>who</i> is made to break them and why it matters: the guilt of the first arrow lands on Troy, and everyone on both sides knows what gods do to oath-breakers." },
+    { gk: "epipōlēsis (ἐπιπώλησις)", def: "\"the ranging of the ranks\" — the poem's name for Agamemnon's walk down the battle-line, praising some captains and goading others. His needling of Odysseus and Diomedes is kingship as provocation: insult a proud man before battle and watch what he does to prove you wrong." },
+    { gk: "Eris (Ἔρις)", def: "Strife made a goddess — sister of man-killing Ares. Homer gives her the book's most chilling image: small when she first rears her head, then striding the earth with her head striking heaven. A perfect anatomy of how wars grow." },
+    { gk: "atē (ἄτη)", def: "ruin-through-blindness — the folly a god breathes into a mortal so he destroys himself. Pandarus, the fool of this book, is its case study: one archer's moment of persuaded vanity, and a war that was formally over restarts for good." }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "The gods at their cups",
+      what: "<p>On the golden floor of Olympus, <span class='god'>Zeus</span> raises the question with a smirk: <span class='who'>Menelaus</span> has plainly won — shall we stir up war again, or seal the peace and let <span class='who'>Priam</span>'s city stand, and Helen go home? <span class='god'>Hera</span> and <span class='god'>Athena</span> sit muttering, hunched together, plotting Troy's ruin. Hera erupts: all her sweat, all her labor gathering the Greek host — and Zeus would let it come to nothing?</p>",
+      why: "The most jarring cut in the poem so far: from Menelaus raging over an empty field to gods deciding the same question over nectar. Homer wants the vertigo — the whole mortal agony of Books 1–3 is table talk upstairs. And note that Zeus is <i>teasing</i>. The war's continuation is real; his reluctance is theater. That cruelty-as-banter is the register of Homer's heaven."
+    },
+    {
+      n: "Movement II",
+      title: "Hera's terrible bargain",
+      what: "<p><span class='god'>Zeus</span> answers her fury with a dark question — what has <span class='who'>Priam</span> ever done to you, that you hunger to <i>eat him and his children raw?</i> Then he yields, on one condition: when he one day wants a city that <i>she</i> loves destroyed, she must not stand in his way. <span class='god'>Hera</span> agrees instantly — and sweetens it: the three cities dearest to her in all the world are <b>Argos, Sparta, and Mycenae</b>. If they ever offend him, let him raze them; she will not object.</p>",
+      why: "One of the coldest exchanges in ancient literature. Hera trades three cities of her own worshippers — sight unseen, guilt unspecified — for the pleasure of Troy's ruin. Homer's audience knew Mycenae and Sparta as real, ruined or humbled places, which gives the bargain a shiver of history. The gods' economy runs on spite, and mortal cities are its currency."
+    },
+    {
+      n: "Movement III",
+      title: "Athena finds her fool",
+      what: "<p>Dispatched to make the <i>Trojans</i> strike first, <span class='god'>Athena</span> plunges from Olympus like a star the son of Cronus sends blazing — sparks showering — and both armies stare up, murmuring: <i>war again, or peace?</i> She lands in the Trojan ranks disguised as a son of <span class='who'>Antenor</span> and seeks out <span class='who'>Pandarus</span>, a Lycian archer, whispering glory in his ear: shoot <span class='who'>Menelaus</span> now, win the thanks of all Troy and rich gifts from <span class='who'>Paris</span> above all. <i>And the fool's heart was persuaded.</i></p>",
+      why: "Watch the machinery of atē — divine ruin working through mortal vanity. Athena doesn't force Pandarus's hand; she finds the man whose pride is already loaded and aims him. The oath-break must come from Troy so that Troy carries the guilt — a legal, almost theological point that Trojans themselves will feel the dread of. Homer calls Pandarus a fool outright. No suspense about the verdict; only about the cost."
+    },
+    {
+      n: "Movement IV",
+      title: "The arrow — and the fly at the sleeping child",
+      what: "<p><span class='who'>Pandarus</span> strings his great bow, built from the horns of a wild ibex he once shot, and his companions wall him in with shields. The arrow leaps for Menelaus's heart — and <span class='god'>Athena</span>, the very goddess who launched it, flicks it aside <i>as a mother brushes a fly from her sleeping child</i>, steering it down to the belt-buckle where the armor doubles. The point breaks skin. Dark blood runs down <span class='who'>Menelaus</span>'s thighs <i>as when a Maeonian or Carian woman stains ivory with crimson, a cheekpiece for horses, a treasure kings pray for.</i></p>",
+      why: "Two of the most quoted similes in the poem, back to back, and they cut against each other on purpose. The fly-brushing shows a god's tenderness — inside an act of total cynicism, since Athena herself sent the arrow she now gentles. The ivory-staining makes a wound <i>beautiful</i>, blood as craftsmanship. This is Homer's double vision at full power: the war is horror and it is art, in the same breath. And the truce is dead."
+    },
+    {
+      n: "Movement V",
+      title: "Agamemnon's grief — and the doom of Troy spoken",
+      what: "<p><span class='who'>Agamemnon</span> shudders at the sight of his brother's blood — and so does Menelaus, until he sees the barbs sitting outside the flesh. Agamemnon pours out a strange double speech: grief for the brother who may die of this, dread of the shame of sailing home with the war unfinished and Menelaus's bones rotting in Trojan soil. But woven through it is certainty: the oath-breakers will pay. <i>The day will come when sacred Ilium will fall — Priam and the people of Priam of the strong ash spear</i> — Zeus does not forget; the oaths were sworn in his name. Then <span class='who'>Machaon</span>, son of the healer Asclepius, is fetched to draw the arrow and dress the wound with salves old Chiron gave his father.</p>",
+      why: "The first time Troy's fall is spoken as flat certainty inside the poem — and it takes an act of Trojan treachery to unlock the prophecy. From here on, the question of the <i>Iliad</i> is never whether Troy falls, only what it costs everyone on the way. (That line about sacred Ilium falling will sound again later in the epic, from a very different mouth — keep it.) Note also the tenderness: the great king babying his wounded brother is Agamemnon at his most human so far."
+    },
+    {
+      n: "Movement VI",
+      title: "The ranging of the ranks — praise",
+      what: "<p>With the truce dead and the Trojans advancing, <span class='who'>Agamemnon</span> leaves his chariot and walks the whole battle-line on foot — the <i>epipōlēsis</i>. Where he finds eagerness he pours on praise: <span class='who'>Idomeneus</span> of Crete, staunch as a wild boar; the two <span class='who'>Ajaxes</span>, their ranks massed dark <i>like a storm cloud a goatherd watches coming over the sea</i>; old <span class='who'>Nestor</span>, marshaling his Pylians with a veteran's cunning — chariots in front, solid men at the rear, and the waverers packed in the middle <i>so even the unwilling must fight.</i></p>",
+      why: "Homer pauses the war to show what generalship looks like — and Nestor's formation is the poem's little treatise on it: courage is engineered, not assumed. The old man who can no longer fight arranges other men into bravery. It's also Agamemnon rebuilt in our eyes: after the disasters of Books 1 and 2, here at last is a king doing his actual job."
+    },
+    {
+      n: "Movement VII",
+      title: "The ranging of the ranks — the goads",
+      what: "<p>Where Agamemnon finds men standing idle, he stings. He calls <span class='who'>Odysseus</span> a schemer hanging back for others to bleed first — and Odysseus rounds on him with a black look; the king smiles and takes it back. Then he taunts <span class='who'>Diomedes</span>, son of Tydeus: your father was worth ten of you. Diomedes says nothing, <i>respecting the king's rebuke</i> — but his comrade <span class='who'>Sthenelus</span> snaps: we are <b>better</b> than our fathers — we took seven-gated Thebes, which they could not. Diomedes silences his friend: the king is goading us to battle; the glory or the grief will be his. <i>Let him.</i></p>",
+      why: "A masterclass in how differently proud men absorb an insult. Odysseus bristles and is soothed; Sthenelus argues the facts; Diomedes — taunted worst of all — swallows it whole and converts it to fuel. Mark him. The young man who answers a king's insult with silence and discipline is about to answer it another way entirely, and the poem is loading that spring in front of you."
+    },
+    {
+      n: "Movement VIII",
+      title: "The armies meet — and Strife grows tall",
+      what: "<p>The Greek lines come on <i>like sea-waves driven by the west wind, cresting and crashing rank after rank</i>, silent but for their captains' orders; the Trojans clamor <i>like ewes bleating in a rich man's yard.</i> No single tongue unites them — allies called from many lands. And the gods drive both sides: <span class='god'>Ares</span> urging Troy, <span class='god'>Athena</span> the Greeks, with Terror and Rout, and <span class='god'>Eris</span> — Strife — insatiable sister of Ares, <i>who rears small at first, then plants her head against heaven as she strides the earth</i>, sowing hatred in both hosts at once, swelling the groans of men.</p>",
+      why: "The first true battle of the <i>Iliad</i>, and Homer opens it with sound: disciplined silence against polyglot clamor — the same contrast that opened Book 3, now paid off in blood. The figure of Eris, tiny then sky-tall, is the book's whole argument in one image: one arrow, loosed by one persuaded fool, and now Strife's head is scraping heaven. Wars are small exactly once."
+    },
+    {
+      n: "Movement IX",
+      title: "First blood, and the dust takes them side by side",
+      what: "<p>The killing begins, and Homer names the dead. <span class='who'>Antilochus</span>, Nestor's son, kills Echepolus — the first Trojan to fall in the poem's open war. Men fight over the corpse like wolves. Great <span class='who'>Ajax</span> spears young Simoisius — named for the river Simois where he was born, felled <i>like a poplar cut by the wheelwright's blade</i>, his brief life spent before he could repay his parents' care. <span class='who'>Odysseus</span>, raging over a slain comrade, kills Democoon, a bastard son of <span class='who'>Priam</span>. From Troy's high citadel <span class='god'>Apollo</span> shouts the Trojans on — <i>Achilles is not even fighting!</i> — while Athena drives the Greeks. Rock and spear take Diores; the man who killed him is speared in turn. And the book closes on the plain itself: Trojans and Achaeans, that day, <i>stretched side by side, face-down in the dust.</i></p>",
+      why: "After three books of quarrels, catalogues, and duels, this is what the whole engine was for — and Homer's genius is to keep every death particular. Simoisius gets a river, parents, a tree; even the poem's first casualty gets his name spoken. Apollo's taunt lands doubly: the Trojans hear encouragement, but the reader hears Book 1's wound still open — the best of the Achaeans sits by his ships while boys die by the river. And the last image refuses to take sides: in the dust, the two armies finally lie together in the only peace this book allows."
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ The similes of Book 4 — tenderness, craft, and Strife's rising head ✦",
+      lines: [
+        "Athena turned the arrow from Menelaus's flesh <b>as a mother brushes a fly away from her child</b> lying sweetly asleep.",
+        "The dark blood ran down his thighs <b>as when a Maeonian or Carian woman stains ivory crimson</b> — a cheekpiece for horses, a king's treasure — so, Menelaus, your strong legs were stained with blood.",
+        "The Greek battalions came on <b>like long sea-waves under the west wind</b>, swelling far out, then crashing on the beach, spitting salt foam.",
+        "Strife rears her head <b>small at first, then strides the earth with her head striking heaven</b> — sister of man-killing Ares, hurling hatred into both hosts alike.",
+        "Ajax felled young Simoisius <b>like a poplar grown in a great water-meadow</b>, cut down by the wheelwright's gleaming iron to bend into a chariot's rim — left to season by the riverbank."
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Pandarus", epithet: "son of Lycaon, master archer of Lycia", role: "The fool of the book. Persuaded by a disguised Athena, he shoots the arrow that wounds Menelaus and murders the truce — hanging the guilt of oath-breaking on Troy forever.", tag: "The persuaded fool" },
+      { name: "Menelaus", epithet: "lord of the war-cry, the wronged husband", role: "Cheated of his kill in Book 3, now cheated of his safety: the treacherous arrow takes him at the belt. The wound is shallow; what it breaks — the sworn peace — is mortal.", tag: "The wounded oath" },
+      { name: "Agamemnon", epithet: "lord of men, high king", role: "Trembles over his brother's blood, speaks Troy's doom aloud, then walks the whole battle-line praising and goading his captains into war. His best book so far.", tag: "The king at work" },
+      { name: "Diomedes", epithet: "son of Tydeus, master of the war cry", role: "Taunted by Agamemnon as lesser than his father — and answers with disciplined silence, rebuking his own comrade for talking back. A spring being wound.", tag: "The silence before the storm" },
+      { name: "Odysseus", epithet: "master tactician, raider of cities", role: "Bristles hotly when Agamemnon calls him a shirker, and the king backs down smiling. Later kills a son of Priam in fury over a fallen comrade.", tag: "The proud tactician" },
+      { name: "Nestor", epithet: "seasoned charioteer of Pylos", role: "Too old to fight, he engineers courage instead — chariots forward, brave men behind, waverers packed in the middle so even the unwilling must fight.", tag: "The architect of nerve" },
+      { name: "Machaon", epithet: "son of Asclepius, healer of the host", role: "Drawn from the ranks to pull the arrow from Menelaus and dress the wound with salves that Chiron the centaur gave his father.", tag: "The healer" },
+      { name: "Antilochus", epithet: "son of Nestor, swift in the front line", role: "Kills Echepolus — the first named Trojan to die in the open war. The poem's long ledger of the dead opens with his spear.", tag: "First blood" },
+      { name: "Simoisius", epithet: "youth of the river Simois", role: "Felled by great Ajax like a poplar by the wheelwright's blade — unwed, his parents' care unrepaid. The book's emblem of what the broken truce costs.", tag: "The cut poplar" }
+    ],
+    "Gods & Powers": [
+      { name: "Zeus", epithet: "father of gods and men", role: "Needles Hera with the prospect of peace, then trades Troy's doom for a future claim on three of her cities. Sends Athena down to see the oaths broken — by Trojan hands.", tag: "The dealer of cities", god: true },
+      { name: "Hera", epithet: "queen of heaven, implacable", role: "Rages at the thought of Troy spared, and offers Argos, Sparta, and Mycenae — her own dearest cities — as payment for its ruin.", tag: "The grudge that trades cities", god: true },
+      { name: "Athena", epithet: "grey-eyed daughter of Zeus", role: "Falls to earth like a blazing star, finds Pandarus, and talks him into treachery — then flicks the arrow she launched away from Menelaus's heart like a mother brushing off a fly.", tag: "The double agent", god: true },
+      { name: "Ares", epithet: "man-killing god of war", role: "Drives the Trojans into the clash while Athena drives the Greeks — the war god finally given a war.", tag: "The whip of Troy", god: true },
+      { name: "Eris", epithet: "Strife, insatiable sister of Ares", role: "Rears small at first, then strides the earth with her head striking heaven, hurling hatred into both hosts alike.", tag: "The growing war", god: true },
+      { name: "Apollo", epithet: "lord of the silver bow", role: "Shouts the Trojans on from the citadel with the day's sharpest taunt: Achilles is not even fighting.", tag: "The voice from the wall", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "back",
+      to: "iliad-03",
+      title: "The oaths, murdered",
+      note: "Book 3 ended with the truce suspended — sworn over lambs' blood, the duel won but the kill stolen. Book 4 is the payoff: <span class='god'>Athena</span> aims <span class='who'>Pandarus</span>'s arrow at <span class='who'>Menelaus</span>, the very man the oaths protected, and the guilt of breaking them lands on Troy. Menelaus demanded Priam swear <i>because Priam's sons were not to be trusted</i> — he was righter than he knew."
+    },
+    {
+      dir: "back",
+      to: "iliad-02",
+      title: "The refused prayer comes due",
+      note: "At Book 2's close, <span class='god'>Zeus</span> took Agamemnon's ox and refused his prayer for quick victory. Now we see the mechanism: peace was on the table on Olympus, and the gods swept it off. The war resumes not by mortal choice but by divine appointment — exactly the sorrow Zeus had already ordained."
+    },
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "The empty place in the line",
+      note: "When <span class='god'>Apollo</span> rallies Troy, his taunt is Book 1's wound made audible: <i>Achilles is not fighting.</i> The first battle of the war is fought in the shape of his absence — and every Greek who falls face-down in this book's dust is part of the price of the quarrel by the ships, and of the promise Zeus made to <span class='god'>Thetis</span>."
+    },
+    {
+      dir: "ahead",
+      to: "iliad-05",
+      title: "The goaded man",
+      note: "Agamemnon told <span class='who'>Diomedes</span> to his face that he was less than his father, and Diomedes answered with silence. That silence has a sequel. Watch what the son of Tydeus does with an insult once the fighting truly opens."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · The bargain over nectar",
+      kind: "event",
+      q: "Zeus floats the idea of ending the war with Menelaus's victory. What price does Hera offer to make sure Troy burns instead?",
+      opts: [
+        "She swears to abandon the Greeks if Zeus ever asks it",
+        "She offers up her three dearest cities — Argos, Sparta, and Mycenae — for Zeus to destroy whenever they offend him",
+        "She promises Zeus the golden apple of discord",
+        "She agrees to release Heracles from his labors"
+      ],
+      correct: 1,
+      truth: "<b>Three cities of her own worshippers.</b> Hera trades Argos, Sparta, and Mycenae — sight unseen, no guilt named — for the ruin of Troy. Zeus's question hangs over the whole scene: what has Priam done to you, that you'd eat him and his children raw? The gods' economy runs on spite, and mortal cities are the coin."
+    },
+    {
+      n: "II · The murder of the truce",
+      kind: "event",
+      q: "How does the sworn peace of Book 3 actually die?",
+      opts: [
+        "Agamemnon orders a surprise attack at dawn",
+        "Paris refuses to hand over Helen and the Trojans charge",
+        "Athena, disguised, persuades the archer Pandarus to shoot Menelaus mid-truce",
+        "Menelaus storms the Trojan lines hunting for Paris"
+      ],
+      correct: 2,
+      truth: "<b>One persuaded fool.</b> Athena finds Pandarus and whispers glory: shoot Menelaus and win the thanks of Troy and gifts from Paris. <i>And the fool's heart was persuaded.</i> The point is legal as much as tragic — the oath-break must come from Trojan hands, so Troy carries the guilt before gods and men."
+    },
+    {
+      n: "III · The fly and the ivory",
+      kind: "meaning",
+      q: "Athena deflects the very arrow she engineered, 'as a mother brushes a fly from her sleeping child.' What is Homer doing with that simile?",
+      opts: [
+        "Showing that Athena secretly wanted peace after all",
+        "Proving Menelaus was never in real danger from a mere archer",
+        "Setting divine tenderness inside an act of total cynicism — the goddess gentles the treachery she herself launched",
+        "Suggesting the gods cannot actually alter mortal fates"
+      ],
+      correct: 2,
+      truth: "<b>Tenderness inside cynicism.</b> The same goddess aims the arrow and then brushes it aside like a mother with a sleeping child — care and manipulation in a single gesture. Paired with the blood 'like ivory stained crimson,' Book 4 announces Homer's double vision: the war is horror and artwork in the same breath."
+    },
+    {
+      n: "IV · The doom spoken",
+      kind: "event",
+      q: "Standing over his wounded brother, what certainty does Agamemnon speak aloud for the first time in the poem?",
+      opts: [
+        "That Achilles will return to the fighting within days",
+        "That the day will come when sacred Ilium falls — Priam and all his people — because Zeus punishes broken oaths",
+        "That the Greeks must sail home before winter",
+        "That Pandarus will die by his own bow"
+      ],
+      correct: 1,
+      truth: "<b>Troy's fall, spoken flat.</b> The treacherous arrow unlocks the prophecy: Zeus witnessed the oaths, and oath-breakers pay. From this moment the <i>Iliad</i>'s question is never whether Troy falls — only what it costs on the way. Homer will put nearly these same words in another mouth later in the epic; hold onto them."
+    },
+    {
+      n: "V · The goaded and the silent",
+      kind: "event",
+      q: "Ranging the ranks, Agamemnon taunts Diomedes as lesser than his father Tydeus. How does Diomedes take it?",
+      opts: [
+        "He hurls the insult back and nearly draws his sword",
+        "He says nothing, out of respect for the king's goad — and silences his comrade Sthenelus, who talked back",
+        "He demands the right to lead the first charge as amends",
+        "He leaves the battle line and refuses to fight, like Achilles"
+      ],
+      correct: 1,
+      truth: "<b>Silence — and discipline.</b> Sthenelus snaps back with the facts (<i>we took seven-gated Thebes; our fathers failed</i>), but Diomedes hushes him: the king is goading us to battle, and the glory or grief will be his. A proud man converting insult into fuel. The poem is winding that spring deliberately."
+    },
+    {
+      n: "VI · The thread back to Book 1",
+      kind: "thread",
+      q: "As the first true battle rages, Apollo shouts encouragement to the Trojans from the citadel. Why is his taunt really Book 1's wound made audible?",
+      opts: [
+        "Because he reminds the Trojans that Chryseis was returned to her father",
+        "Because he mocks Agamemnon for the plague upon the Greek camp",
+        "Because he cries that Achilles is not even fighting — the first battle is fought in the shape of his absence",
+        "Because he reveals that Zeus has abandoned the Greek cause forever"
+      ],
+      correct: 2,
+      truth: "<b>Achilles is not fighting.</b> Apollo's war-cry is the quarrel by the ships echoing onto the first battlefield: the best of the Achaeans sits out while boys like Simoisius fall by the river. Every Greek face-down in this book's dust is part of the price of Book 1 — and of the promise Zeus made to Thetis."
+    }
+  ]
+};
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-05"] = {
+  meta: {
+    id: "iliad-05",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 5,
+    title: "Diomedes Fights the Gods",
+    subtitle: "Book Five — Athena kindles one mortal to a day of terrible glory; before it ends he has spilled the blood of two immortals",
+    tagline: "Scene · ten movements · the great aristeia · then the Ninth Hour",
+    epigraph: {
+      text: "Now Athena breathed strength and daring into Tydeus' son Diomedes, and lit an unwearied fire from his helmet and shield, like the star of late summer that burns brightest, bathed in the Ocean — and she drove him into the thick of the fighting where the most men fought.",
+      src: "after Fagles, Iliad 5.1–8 — the book opens by naming its hero and setting him alight; the whole song is the burning-down of that fire. (Paraphrase in the app's voice; not wrapped as a verbatim quotation.)"
+    }
+  },
+
+  scene: [
+    "The truce is dead and the first blood of Book 4 is drying on the plain. Now Homer does something new: he narrows the whole war down to one man. This is an <i>aristeia</i> — a single hero's day of supreme excellence — and its subject is <span class='who'>Diomedes</span>, son of Tydeus, the young captain who swallowed <span class='who'>Agamemnon</span>'s insult in silence one book ago.",
+    "<span class='god'>Athena</span> pours fire into him and turns him loose. What follows is the poem's most dangerous experiment: a mortal raised so high by a god that he stops distinguishing gods from men — and is <i>told</i> not to, except for one. Before the day is done, Diomedes will drive his spear into the flesh of <span class='god'>Aphrodite</span> and, with Athena herself at the reins, into the belly of <span class='god'>Ares</span>. The book asks the question the whole <i>Iliad</i> circles: how close to a god can a man come before the gods slam the door?"
+  ],
+
+  terms: [
+    { gk: "aristeia (ἀριστεία)", def: "a hero's day of surpassing excellence — the stretch of battle where one warrior blazes above all others, kills a named string of enemies, is wounded, prays, and rises stronger. Book 5 is the poem's first and most complete aristeia; every later one, even <span class='who'>Achilles</span>'s, is measured against Diomedes'." },
+    { gk: "menos (μένος)", def: "the surge of battle-might a god breathes into a mortal — fury, force, and daring in one. Athena fills Diomedes with <i>menos</i> twice: once at the start, once after his wound, and the second dose comes with a warning attached." },
+    { gk: "ichōr (ἰχώρ)", def: "the fluid that runs in a god's veins where blood runs in ours — <i>not</i> blood, because the gods eat no bread and drink no wine, and so are bloodless and deathless. When Diomedes' spear opens Aphrodite's wrist, what wells out is ichor: the poem's proof that a mortal has torn something that was never supposed to bleed." },
+    { gk: "theomachia (θεομαχία)", def: "\"battle against the gods\" — a mortal raising a weapon at an immortal. Book 5 is the boldest theomachy in Homer, and also its own rebuke: <span class='god'>Apollo</span> lets Diomedes wound two gentler gods, then stops him cold with the poem's hardest lesson — <i>the deathless gods and men who walk the earth are not one kind.</i>" }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "The fire from the helmet",
+      what: "<p><span class='god'>Athena</span> breathes strength and daring into <span class='who'>Diomedes</span> and kindles a tireless flame from his helmet and shield — like the star of late summer, Sirius, rising bathed in Ocean to burn at its brightest. She steers him into the densest fighting, and he begins to kill: Phegeus falls first, and his brother Idaeus flees the chariot, saved only when <span class='god'>Hephaestus</span> hides him in night so their old father is not left wholly childless.</p>",
+      why: "The formal opening of an aristeia — the god names her man, marks him with fire, and lets him loose. The Sirius simile is double-edged: the star is the most brilliant in the sky and the bringer of fever and death to men. Homer signals from the first lines that Diomedes' glory and the plain's slaughter are the same light."
+    },
+    {
+      n: "Movement II",
+      title: "The arrow of Pandarus, and a prayer",
+      what: "<p>As Diomedes storms the field, <span class='who'>Pandarus</span> — the archer who murdered the truce in Book 4 — draws his bow again and drives a shaft through Diomedes' shoulder-plate. Blood spurts; Pandarus shouts in triumph that the best of the Achaeans is down. But <span class='who'>Sthenelus</span> pulls the arrow free, and Diomedes prays to <span class='god'>Athena</span>: <i>if ever you loved my father, stand by me now — bring that man within my spear-cast.</i></p>",
+      why: "The wound is the hinge every aristeia turns on: the hero must fall low before he rises highest. And note the enemy — Pandarus, whose bow already broke the sworn oaths, now aims it at the poem's rising hero. Homer is closing a circuit. The archer who loosed the war's first treacherous arrow has one more to loose, and it summons the thing that will end him."
+    },
+    {
+      n: "Movement III",
+      title: "The eyes to know a god — and one command",
+      what: "<p><span class='god'>Athena</span> comes. She fills <span class='who'>Diomedes</span> with fresh <i>menos</i>, and does something no god does again in the poem: she strips the mist from his eyes so he can tell gods from men on the field. Then the single, fateful order — <b>fight no immortal, whoever you meet — except one. If <span class='god'>Aphrodite</span> comes to the war, her you may wound with the sharp bronze.</b></p>",
+      why: "The command is the book's whole design in one sentence. Athena gives Diomedes a god's sight but forbids a god's war — with a single exemption for the goddess of love, whom the war-gods hold in contempt. It is a licence with a fence around it, and the drama of Book 5 is Diomedes walking that fence: how far can a man be pushed toward divinity before he tests the limit himself?"
+    },
+    {
+      n: "Movement IV",
+      title: "The lion loose among the fold",
+      what: "<p>Diomedes plunges back in worse than before — <i>like a lion that a shepherd wounds as it leaps the fold but does not kill, only rouses to fury</i>, so the beast rampages among the helpless sheep. He kills in pairs and clusters, breaking the Trojan line, until men cannot tell whether he fights for the Greeks or is some god come down in anger.</p>",
+      why: "The confusion is the point. Filled with divine might and blazing with divine fire, Diomedes has become, to the men around him, indistinguishable from a god — the exact border the book is testing. Homer lets the Trojans voice the question the reader is already asking: is this still a man?"
+    },
+    {
+      n: "Movement V",
+      title: "Aeneas, Pandarus, and the boulder",
+      what: "<p><span class='who'>Aeneas</span>, son of <span class='god'>Aphrodite</span>, finds <span class='who'>Pandarus</span> and yokes the archer's skill to his own chariot to bring Diomedes down. They close in. Pandarus' spear pierces Diomedes' shield but not his flesh — and Diomedes' answer does not miss: the bronze smashes through Pandarus' face, and the truce-breaker dies in the dust, his arc closed. Then Diomedes lifts a stone <i>two men of today could not carry</i> and hurls it into Aeneas' hip, shattering the socket; Aeneas drops to his knees, and darkness veils his eyes.</p>",
+      why: "Two settlings-of-account in one clash. Pandarus dies by the very hero his last arrow woke — Homer's justice for the broken oaths, delivered on the field rather than declared from the sky. And the boulder that fells Aeneas raises the stakes: the son of a goddess is down, and his mother is watching. The book has found its way to a god."
+    },
+    {
+      n: "Movement VI",
+      title: "The wounding of Aphrodite — ichor on the plain",
+      what: "<p><span class='god'>Aphrodite</span> throws her white arms around her son and gathers him up to carry him from the killing. <span class='who'>Diomedes</span>, knowing her for the one god he is allowed to strike, drives through the press and thrusts his spear at her wrist; it tears the immortal robe Graces wove and grazes the flesh. Out wells <b>ichor</b> — the blood the blessed gods possess, who eat no bread and drink no wine. She shrieks and drops <span class='who'>Aeneas</span>; <span class='god'>Apollo</span> catches him in a dark cloud, and the goddess of love flees the field weeping.</p>",
+      why: "The single wound the whole book was built to permit — and Homer treats it as an event of cosmic strangeness: a mortal spear opening a goddess, and something that is not blood running down a divine wrist. The ichor line is one of the poem's great definitions of what a god <i>is</i> — bloodless, breadless, deathless. Diomedes has touched that, and lived. But he touched the gentlest of the gods, by permission. The question now is whether he remembers the fence."
+    },
+    {
+      n: "Movement VII",
+      title: "Olympus laughs and comforts",
+      what: "<p><span class='god'>Aphrodite</span> flees to her mother <span class='god'>Dione</span>'s lap, and Dione soothes her with a roll-call of gods once hurt by men: <span class='god'>Ares</span> bound thirteen months in a bronze jar by the giant Aloadae; <span class='god'>Hera</span> struck in the breast by <span class='who'>Heracles</span>' arrow; <span class='god'>Hades</span> himself pierced at Pylos and driven up to Olympus for healing. <span class='god'>Athena</span> and <span class='god'>Hera</span> needle the weeping goddess; <span class='god'>Zeus</span> smiles and tells his daughter to leave war alone — <i>your work is the sweet business of marriage; leave the fighting to Ares and Athena.</i></p>",
+      why: "A deliberate change of key — comedy on Olympus while men die below. But Dione's catalogue plants a warning under the laughter: gods <i>can</i> be wounded by mortals, and every mortal who dared it came to grief. And Zeus's gentle scolding sorts the gods into their spheres: love is not to meddle in war. That sorting is about to be tested by a far angrier god than Aphrodite."
+    },
+    {
+      n: "Movement VIII",
+      title: "Apollo's warning — the door of heaven closes",
+      what: "<p><span class='who'>Diomedes</span>, drunk on the day, charges even <span class='god'>Apollo</span>, who stands guarding the fallen <span class='who'>Aeneas</span>. Three times he lunges; three times Apollo beats his shield back. On the fourth, the god's voice cracks over him like a whip: <b>Think, son of Tydeus, and give ground. Never dream of matching your strength with the gods — the deathless gods and men who walk the earth are not one kind.</b> Diomedes gives way. Apollo lifts the real Aeneas to his temple on Troy's height, where <span class='god'>Leto</span> and <span class='god'>Artemis</span> heal him, and leaves a phantom Aeneas on the field for both armies to fight over.</p>",
+      why: "The hinge of the whole book — and one of the <i>Iliad</i>'s load-bearing lines. Athena's fence had one gate (Aphrodite); Diomedes, exalted past sense, tries to climb clean over the wall, and Apollo names the law that governs the poem: the line between god and man is absolute, and crossing it is not courage but folly. Diomedes' greatness is precisely that he stops. Hold this warning — the poem will test other, greater men against it."
+    },
+    {
+      n: "Movement IX",
+      title: "Sons of Zeus and sons of Heracles",
+      what: "<p><span class='god'>Apollo</span> rouses <span class='god'>Ares</span> to steady the Trojans, and the tide turns. <span class='who'>Sarpedon</span> of Lycia — a son of <span class='god'>Zeus</span> — rebukes <span class='who'>Hector</span> for letting allies carry the fight, then faces <span class='who'>Tlepolemus</span>, a son of <span class='who'>Heracles</span>. They cast together: Tlepolemus falls dead, and Sarpedon is speared through the thigh, dragged from the field half-alive, begging not to be left for the Greeks. Meanwhile a healed <span class='who'>Aeneas</span> walks back into the ranks, to his men's amazement.</p>",
+      why: "Homer widens the lens from Diomedes to the war's larger design — and to its cruelest arithmetic. Sarpedon is Zeus's own son, and even he bleeds and is nearly killed; his survival here only postpones a reckoning the poem is quietly keeping. The clash of a son of Zeus with a grandson of Zeus (through Heracles) shows a battlefield where divine blood is everywhere and protects no one completely."
+    },
+    {
+      n: "Movement X",
+      title: "The wounding of Ares — a goddess takes the reins",
+      what: "<p>With Ares scything down Greeks, <span class='god'>Hera</span> and <span class='god'>Athena</span> win <span class='god'>Zeus</span>'s leave to stop him. Athena claps on the cap of <span class='god'>Hades</span> so the war-god cannot see her, and climbs into <span class='who'>Diomedes</span>' chariot — <i>the beechwood axle groaning under the weight of the dread goddess and the man.</i> She seizes the reins herself and drives him at Ares. When Ares hurls his spear, Athena bats it aside; Diomedes drives his own home, and the goddess leans on it, ramming it deep into the war-god's belly. <span class='god'>Ares</span> bellows loud as ten thousand men and flees to Olympus, where <span class='god'>Zeus</span> heals him with contempt: <i>most hateful to me of all the gods — yet you are my son, and I will not let you suffer.</i> The gods withdraw, and the book burns out.</p>",
+      why: "The book's summit: not a man beating a god by himself, but a god driving a man's spear. Homer is exact about it — the axle groans under Athena's weight, and it is her hand that leans the point home. Diomedes reaches the very edge of the divine, and only because a goddess holds the reins. Even Zeus's welcome to his wounded son is pure contempt: Ares, the naked spirit of war, is the most hated thing in heaven. The most god-touched day any mortal has in the poem ends with the gods pulling back to their own sphere — the door Apollo named, swinging shut."
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ The similes of Book 5 — fire, flood, and bloodless blood ✦",
+      lines: [
+        "Athena lit the fire from Diomedes' helm and shield <b>like the star of high summer</b> that burns brightest of all, risen fresh-bathed from the Ocean — the star that brings men fever.",
+        "Wounded but not killed, he raged among the Trojans <b>like a lion the shepherd grazes as it leaps the fold</b> — not stopped, only maddened, so it ravages the huddled sheep.",
+        "He swept the plain <b>like a winter torrent in flood</b> that bursts the dikes, and no wall of the vineyards can hold it as it comes.",
+        "From Aphrodite's grazed wrist ran <b>ichor, such as flows in the blessed gods</b> — for they eat no bread, they drink no wine, and so are bloodless, and men call them deathless.",
+        "Ares wounded roared <b>as loud as nine or ten thousand men cry out</b> when armies clash — and both hosts shook to hear one god bellow.",
+        "As Athena climbed the car beside him, <b>the beechwood axle groaned aloud</b> under the weight of the terrible goddess and the man she carried into the god's own war."
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Diomedes", epithet: "son of Tydeus, lord of the war cry", role: "The hero of the aristeia. Set alight by Athena, wounded by Pandarus, healed and refilled with menos, he kills Pandarus, fells Aeneas with a boulder, wounds Aphrodite, and — with Athena at the reins — wounds Ares. His greatness is that he knows when to stop.", tag: "The man who wounded gods" },
+      { name: "Pandarus", epithet: "son of Lycaon, the archer of Lycia", role: "The truce-breaker of Book 4, back for a last arrow. He wounds Diomedes, boasts too soon, then teams with Aeneas — and dies with the young hero's spear through his face. His arc closes where his treachery aimed it.", tag: "The bow, silenced" },
+      { name: "Aeneas", epithet: "son of Anchises and the goddess Aphrodite", role: "Yokes Pandarus' bow to his chariot against Diomedes, and is felled by a stone that shatters his hip. Rescued first by his mother, then by Apollo, and healed in Apollo's temple — the goddess-born son the gods will not let die.", tag: "The rescued son" },
+      { name: "Sthenelus", epithet: "son of Capaneus, Diomedes' companion", role: "Draws the arrow from Diomedes' shoulder so the aristeia can begin, and captures the horses of the fallen. The steady friend at the hero's side.", tag: "The hand that drew the shaft" },
+      { name: "Sarpedon", epithet: "son of Zeus, captain of Lycia", role: "Rebukes Hector for hiding behind his allies, then kills Tlepolemus and takes a spear through the thigh — dragged off half-alive. Even a son of Zeus bleeds; the poem is keeping his account.", tag: "Zeus's wounded son" },
+      { name: "Tlepolemus", epithet: "son of Heracles, lord of Rhodes", role: "Faces Sarpedon in a trade of spears and loses his life for a wound. A grandson of Zeus killed by a son of Zeus — divine blood on both sides of one cast.", tag: "The fallen Heraclid" }
+    ],
+    "Gods & Powers": [
+      { name: "Athena", epithet: "grey-eyed daughter of Zeus", role: "The engine of the whole book: she kindles Diomedes, gives him the eyes to know gods from men, sets the one command about Aphrodite — then dons the cap of Hades, mounts his chariot, takes the reins, and drives his spear into Ares herself.", tag: "The goddess at the reins", god: true },
+      { name: "Aphrodite", epithet: "goddess of love, daughter of Zeus and Dione", role: "Lifts her son Aeneas from the field and is wounded on the wrist by Diomedes' spear — the ichor and the shriek. Flees to her mother's arms and is told by Zeus to keep to marriage and leave war to others.", tag: "The wounded goddess", god: true },
+      { name: "Apollo", epithet: "lord of the silver bow", role: "Snatches Aeneas from death, sets a phantom in his place, and speaks the book's law to Diomedes: never match the gods; god and man are not one kind. Then rouses Ares to steady Troy.", tag: "The door of heaven", god: true },
+      { name: "Ares", epithet: "man-killing god of war", role: "Roused to fight for Troy, he scythes down Greeks until Athena drives Diomedes' spear into his belly. Bellows like ten thousand men and flees to Olympus — where his own father calls him the most hateful of the gods.", tag: "The hated war-god", god: true },
+      { name: "Dione", epithet: "mother of Aphrodite", role: "Comforts her wounded daughter with a catalogue of gods once hurt by mortal hands — Ares in his jar, Hera and Hades pierced by Heracles — a lullaby with a warning inside it.", tag: "The comforting catalogue", god: true },
+      { name: "Zeus", epithet: "father of gods and men", role: "Grants Hera and Athena leave to stop Ares, smiles Aphrodite back to her sphere, and heals the war-god he despises. The keeper of the spheres the whole book keeps testing.", tag: "The keeper of spheres", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "back",
+      to: "iliad-04",
+      title: "The goaded man answers",
+      note: "Book 4 wound a spring in front of you: <span class='who'>Agamemnon</span> told <span class='who'>Diomedes</span> to his face that he was less than his father, and Diomedes answered only with silence and discipline. <b>This is the sequel.</b> The insult he swallowed becomes a day of glory no other Greek matches — the son of Tydeus proving the taunt wrong not with words but with two wounded gods."
+    },
+    {
+      dir: "back",
+      to: "iliad-04",
+      title: "Pandarus' last arrow",
+      note: "The archer who broke the sworn oaths in Book 4, hanging Troy's guilt on his own bowstring, looses one more shaft here — into <span class='who'>Diomedes</span>' shoulder. It wakes the very hero who kills him. Homer settles the truce-breaker's account on the field, spear through the face, the arc that began with treachery ending in the dust."
+    },
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "Athena's hand, reversed",
+      note: "In Book 1 <span class='god'>Athena</span> seized <span class='who'>Achilles</span> by the hair to <i>stay</i> his hand from killing. Here she does the opposite: she fills <span class='who'>Diomedes</span>' hand with fire and finally takes his chariot-reins to drive his spear <i>into</i> a god. The same goddess who once held a hero back now steers one past the edge of the mortal world."
+    },
+    {
+      dir: "ahead",
+      to: "iliad-06",
+      title: "When the lion meets a guest",
+      note: "Diomedes ends this book as the most god-touched killer on the plain. Watch what he does at the start of the next one when he meets an enemy whose grandfather once hosted his — whether the man who wounded Aphrodite still knows a mortal courtesy the gods do not. A hint, no more."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · The one permitted wound",
+      kind: "event",
+      q: "When Athena heals Diomedes and gives him the sight to tell gods from men, what single order does she attach to it?",
+      opts: [
+        "Kill Hector before the sun sets, whatever it costs",
+        "Fight no immortal — except Aphrodite, whom he may wound if she enters the war",
+        "Spare Aeneas, for the gods love him",
+        "Never leave his chariot, or the fire will fail"
+      ],
+      correct: 1,
+      truth: "<b>A licence with a fence.</b> Athena forbids Diomedes to fight the gods, then carves out one exception — Aphrodite, the goddess of love, whom the war-gods hold in contempt. The whole book is Diomedes walking that fence, and the drama is whether he'll respect its one gate or try to climb the wall."
+    },
+    {
+      n: "II · The truce-breaker's end",
+      kind: "event",
+      q: "Pandarus, the archer who broke the oaths in Book 4, meets his end here. How?",
+      opts: [
+        "Apollo strikes him down for failing Troy",
+        "He drowns in the river Scamander",
+        "Diomedes' spear smashes through his face after Pandarus teams with Aeneas",
+        "His own bowstring snaps and the arrow kills him"
+      ],
+      correct: 2,
+      truth: "<b>Killed by the hero his last arrow woke.</b> Pandarus wounds Diomedes, boasts too soon, then joins Aeneas' chariot to finish him — and Diomedes' cast takes him through the face. Homer delivers justice for the murdered truce on the field, not from the sky. The bow that loosed the war's first treachery is silenced by the man it wounded."
+    },
+    {
+      n: "III · The blood that is not blood",
+      kind: "event",
+      q: "Diomedes drives his spear at Aphrodite as she lifts her wounded son. What flows from the wound, and why does it matter?",
+      opts: [
+        "Ordinary red blood, proving she is no true goddess",
+        "Ichor — the fluid of the gods, who eat no bread and drink no wine, and so are bloodless and deathless",
+        "Fire, which sets the plain alight",
+        "Nothing; the spear cannot touch an immortal"
+      ],
+      correct: 1,
+      truth: "<b>Ichor.</b> The wound wells not blood but ichor — the poem's great definition of what a god is: bloodless, breadless, deathless. A mortal spear has opened something never meant to bleed. But Diomedes struck the gentlest god, by Athena's express permission. The real test is whether he remembers the fence."
+    },
+    {
+      n: "IV · The law Apollo speaks",
+      kind: "meaning",
+      q: "Diomedes lunges three times at Apollo and is thrown back; on the fourth, Apollo stops him with a warning. What is the warning really about?",
+      opts: [
+        "That Aeneas is fated to survive and must not be touched",
+        "That Zeus has forbidden all fighting for the day",
+        "That the line between god and man is absolute — 'the deathless gods and men who walk the earth are not one kind'",
+        "That Diomedes' fire will burn out if he strikes again"
+      ],
+      correct: 2,
+      truth: "<b>The absolute line.</b> Exalted past sense, Diomedes tries to climb over the wall Athena fenced, and Apollo names the poem's governing law: god and man are not one kind, and matching the gods is not courage but folly. Diomedes' greatness is that he <i>gives ground</i>. Hold the line — the poem will measure other, greater men against it."
+    },
+    {
+      n: "V · The goddess at the reins",
+      kind: "event",
+      q: "How does Diomedes come to wound Ares, the god of war himself?",
+      opts: [
+        "He ambushes Ares alone while the god sleeps",
+        "Athena dons the cap of Hades, mounts his chariot, takes the reins, and leans her weight on his spear as it goes in",
+        "Zeus hurls a thunderbolt that Diomedes follows up",
+        "Hera distracts Ares with a false vision while Diomedes strikes"
+      ],
+      correct: 1,
+      truth: "<b>Not a man beating a god — a god driving a man's spear.</b> Homer is exact: the axle groans under Athena's weight, unseen in the cap of Hades, and it is her hand that rams the point home. Ares bellows like ten thousand men and flees to Zeus, who heals him with open contempt — the war-god is the most hated thing in heaven."
+    },
+    {
+      n: "VI · The thread back to Book 4",
+      kind: "thread",
+      q: "Why is this entire book the payoff of a spring Homer wound in Book 4?",
+      opts: [
+        "Because Agamemnon finally apologizes to Achilles",
+        "Because the truce Pandarus broke is formally restored",
+        "Because Diomedes, whom Agamemnon taunted as less than his father, answers the insult with a day of glory no other Greek matches",
+        "Because Helen is returned to Menelaus at last"
+      ],
+      correct: 2,
+      truth: "<b>Silence, answered in fire.</b> In Book 4 Agamemnon called Diomedes lesser than Tydeus, and Diomedes swallowed it whole, even hushing his comrade. Book 5 is the reply: not words but two wounded immortals and the greatest aristeia in the poem. The son of Tydeus disproves the taunt with his spear."
+    }
+  ]
+};
+</script>
+<script>
+window.LOOM_DATA = window.LOOM_DATA || {};
+window.LOOM_DATA["iliad-06"] = {
+  meta: {
+    id: "iliad-06",
+    epic: "The Iliad",
+    song: "First Song",
+    book: 6,
+    title: "Hector Returns to Troy",
+    subtitle: "Book Six — the war pauses for guest-friendship on the field and a farewell at the gates; we finally see what the fighting is for",
+    tagline: "Scene · eight movements · the leaves, the loom, and the child · then the Ninth Hour",
+    epigraph: {
+      text: "Like the generations of leaves, so are the generations of men. The wind scatters the leaves on the ground, but the living timber buds again when the spring comes round. So one generation of men will grow while another dies.",
+      src: "after Fagles, Iliad 6.171–176 — Glaucus's answer to a stranger who asks his lineage; the most famous image in the poem for what a mortal life is worth. (Paraphrase in the app's voice; not wrapped as a verbatim quotation.)"
+    }
+  },
+
+  scene: [
+    "The gods have withdrawn — <span class='god'>Ares</span> nursing his belly-wound, <span class='god'>Aphrodite</span> her wrist — and for the first time the battle is left to men alone. The Trojans are giving ground. And Homer, having shown us the war at its most god-touched in Book 5, now does the opposite: he takes us <i>off</i> the plain and inside the walls, into the houses and the family the whole ten-year siege is about.",
+    "This is the book of what is at stake. Two enemies meet in the no-man's-land and, instead of killing, trade armor over an inherited friendship. <span class='who'>Hector</span> walks back through his own doomed city — past his mother, past his brother's bedroom, to his wife and infant son at the gate. He already knows, in his heart, how it all ends. He goes back to the fighting anyway. Book 6 is where the <i>Iliad</i> earns its grief."
+  ],
+
+  terms: [
+    { gk: "xenia (ξενία)", def: "guest-friendship — the sacred bond between host and guest, protected by <span class='god'>Zeus</span> himself and <i>inherited across generations</i>. When Diomedes learns his grandfather once hosted Glaucus's, the two enemies lower their spears: the bond outranks the war. It is the exact law <span class='who'>Paris</span> shattered when he stole Helen from the man who housed him." },
+    { gk: "aidōs (αἰδώς)", def: "shame before others, the fear of being seen a coward — the force that drives <span class='who'>Hector</span> back to a war he knows is lost. He cannot hide behind the wall, he tells Andromache, for the shame he would feel before the men and women of Troy. Where <span class='who'>Achilles</span> withdrew in wrath, Hector advances in shame: the poem's two great engines, side by side." },
+    { gk: "peplos (πέπλος)", def: "a woman's robe — here the finest in Troy, laid across the knees of <span class='god'>Athena</span>'s statue as the city's women beg the goddess to hold Diomedes back. Athena turns her head away. The prayer of the mothers is refused on the page, in silence." },
+    { gk: "Astyanax (Ἀστυάναξ)", def: "\"lord of the city\" — the name the Trojans give Hector's baby son, whose own father calls him Scamandrius. The name is a small heartbreak: the child is titled for a city that will not outlive his father to be ruled." }
+  ],
+
+  movements: [
+    {
+      n: "Movement I",
+      title: "No mercy for Adrestus",
+      what: "<p>With the Trojans in retreat, <span class='who'>Menelaus</span> takes Adrestus alive; the man clasps his knees and begs — his father will pay a rich ransom. Menelaus is moved and nearly yields. Then <span class='who'>Agamemnon</span> rushes up: <i>let none escape sheer death — not even the boy still in his mother's womb.</i> Menelaus shoves the suppliant away, Agamemnon spears him in the flank, and sets his heel on the corpse to wrench the shaft free.</p>",
+      why: "The book opens on the war at its coldest, so that everything tender to come is measured against it. Agamemnon's total-war creed — kill the unborn — is the plain's logic in its purest, ugliest form. Homer wants that logic fresh in your mind when, a few movements later, two enemies choose <i>not</i> to kill, and a father cradles a son. This is the darkness the rest of the book pushes back against."
+    },
+    {
+      n: "Movement II",
+      title: "The seer sends Hector home",
+      what: "<p><span class='who'>Helenus</span>, Priam's son and Troy's finest augur, tells <span class='who'>Hector</span> to steady the line — then to leave the field and go up into the city. He must bid their mother <span class='who'>Hecuba</span> gather the noble women at <span class='god'>Athena</span>'s temple, lay the loveliest robe on the goddess's knees, and vow twelve yearling heifers, if only Athena will pity Troy and hold back <span class='who'>Diomedes</span>, who is raging <i>like no man they have faced.</i></p>",
+      why: "The errand is what pulls Hector off the battlefield and into the heart of the book — the whole domestic movement hangs on it. And notice its cause: the Greeks so fear Diomedes after Book 5 that Troy's only hope seems to be prayer. The aristeia we just watched is now a shadow over the city, driving its women to their knees before an altar."
+    },
+    {
+      n: "Movement III",
+      title: "Glaucus and Diomedes — leaves, and an old debt",
+      what: "<p>In the gap between the armies, <span class='who'>Diomedes</span> — wary of gods after his day — asks the man before him who he is. <span class='who'>Glaucus</span> answers with the great simile: <i>like the generations of leaves are the generations of men</i>, one budding as another falls. Then his lineage — down to <span class='who'>Bellerophon</span>, sent to Lycia carrying a folded tablet of <i>murderous signs</i> meant to kill him, who slew the Chimaera and survived. Diomedes plants his spear in the ground, delighted: their grandfathers were guest-friends — <span class='who'>Oeneus</span> once hosted Bellerophon twenty days. <b>They are friends by inheritance.</b> They clasp hands, swear to avoid each other in the fighting, and trade armor — though <span class='god'>Zeus</span> steals Glaucus's wits, for he swaps gold gear for bronze, a hundred oxen's worth for nine.</p>",
+      why: "The still center of the <i>Iliad</i>. In the middle of a killing field, two men discover that a bond of <i>xenia</i> older than either of them outranks the war, and they honor it. Set it against Book 3: <span class='who'>Paris</span> broke exactly this bond — he was <span class='who'>Menelaus</span>'s guest and stole his wife and his treasure. The whole war is a debt of violated guest-friendship; here, two enemies pay a different debt of it the right way. The comic detail of the lopsided trade keeps it human — honor, not calculation, and Homer smiles at the cost."
+    },
+    {
+      n: "Movement IV",
+      title: "Hector in the city — the cup refused",
+      what: "<p><span class='who'>Hector</span> enters Troy, and the women run to him crying for news of sons and husbands. His mother <span class='who'>Hecuba</span> offers honeyed wine — pour to <span class='god'>Zeus</span>, then drink and rest your limbs. Hector refuses both: wine would sap the strength he needs, and he dares not pour libation to Zeus with hands unwashed and spattered with blood. He gives her the errand instead — gather the women, take the finest robe to Athena's temple, and pray.</p>",
+      why: "A small scene doing quiet work. Hector will not be softened, not by wine, not by rest, not by his mother's care — he holds himself apart from every comfort the city offers because he cannot afford it. The unwashed, bloody hands are the mark of the man the war has made: he no longer fully belongs to the peaceful house he is standing in. Every reunion in this book is also a small leave-taking."
+    },
+    {
+      n: "Movement V",
+      title: "The goddess turns her head",
+      what: "<p>The women of Troy do exactly as bidden. The priestess <span class='who'>Theano</span> lays the great robe across the knees of <span class='god'>Athena</span>'s image and lifts the prayer: pity the city, hold back <span class='who'>Diomedes</span>, and twelve heifers shall be yours. <i>So she prayed — but Pallas Athena turned her head away.</i></p>",
+      why: "One of the bleakest half-lines in the poem, and Homer spends no more words on it than that. The mothers do everything right; the goddess simply refuses, silently, and the narrative moves on. It is the divine machinery of Book 5 seen from below — the same Athena who drove Diomedes' spear will not be bought back by any robe. The reader knows the prayer is dead before the women rise from their knees."
+    },
+    {
+      n: "Movement VI",
+      title: "Paris, Helen, and the bedroom by the war",
+      what: "<p><span class='who'>Hector</span> climbs to <span class='who'>Paris</span>'s house and finds him fondling his splendid armor while <span class='who'>Helen</span> sits among her women. Hector's rebuke is bitter: the city burns for you, and you sulk here. Paris takes it mildly — Helen has just now urged him back to the fight; he will arm. Helen turns on herself hardest of all, calling herself a dog and a curse, wishing the winds had swept her away the day she was born; she begs Hector to sit and rest from the labor her shame has brought. He will not: his heart is with the men dying for this house.</p>",
+      why: "The direct return of Book 3's bedroom, where <span class='god'>Aphrodite</span> lifted Paris from the duel he was losing and set him beside Helen. Now Hector drags that same room back into the war it tried to hide from. Helen's self-loathing has only deepened — she sees herself clearly and can do nothing. And the contrast is merciless: Paris polishing armor he barely uses, Hector unable to sit for the weight of the fighting. Two brothers, one city, one impossible war."
+    },
+    {
+      n: "Movement VII",
+      title: "The farewell at the Scaean Gates",
+      what: "<p><span class='who'>Hector</span> seeks his wife at home, but <span class='who'>Andromache</span> has run to the wall in terror, the nurse beside her carrying their baby. They meet at the gates. She pours out her whole grief: <span class='who'>Achilles</span> killed her father and seven brothers in one day and took her mother — <i>Hector, you are my father now, and my mother, and my brother, and you are my husband too.</i> Stay on the wall, she begs; do not make your son an orphan. Hector answers that he cannot hide for shame before Troy — yet he knows in his bones the day will come when sacred Ilium falls and she is dragged off a slave to weave at another woman's loom; the thought of <i>her</i> chains grieves him more than all Troy's dead. He reaches for the child — who screams, terrified by the bronze and the horsehair crest nodding on the helmet. Both parents laugh through it. Hector lifts off the helmet, kisses his boy, and prays: <i>let them say of him one day, he is better by far than his father.</i></p>",
+      why: "The emotional summit of the whole poem so far, and its argument in miniature. Andromache has already lost every family the war could take; Hector is the last, and he is choosing to risk himself for <i>aidōs</i> — the shame he'd feel hanging back — even while foreseeing, in detail, the ruin his death will unleash on her. The baby's fright at the helmet is the truest stroke: the war-gear that makes Hector a hero makes him a monster to his own son, and he has to strip it off to be a father for one moment. Homer shows you, in a single family, the entire cost the plain has been tallying anonymously."
+    },
+    {
+      n: "Movement VIII",
+      title: "The stallion breaks loose",
+      what: "<p>Hector gives the child back to <span class='who'>Andromache</span>, who takes him <i>smiling through her tears</i>; he pities her, tells her gently that war is the men's concern and sends her home to her loom. As he goes, <span class='who'>Paris</span> comes bounding after — armed at last and blazing with eagerness, <i>like a stallion that snaps its tether and gallops thundering over the plain to the river where it loves to bathe, head high, mane streaming.</i> The brothers turn back toward the battle together.</p>",
+      why: "Homer closes the city-book by pointing it back at the war, and does it with one of his most physical similes — Paris's caged energy finally loosed. The image is glorious and faintly damning at once: a beautiful animal running to no purpose but its own delight, the man whose appetite began this whole ruin now sprinting eagerly to feed it. And Hector, who wants none of it, walks beside him. The gates close on the family; the plain reopens."
+    }
+  ],
+
+  panels: [
+    {
+      label: "✦ The similes of Book 6 — the leaves, the loom, and the loosed horse ✦",
+      lines: [
+        "<b>Like the generations of leaves are the generations of men</b> — the wind scatters one crop to the ground, and the greening wood buds another when spring comes; so one age of men rises as another falls.",
+        "The child shrank back screaming into the nurse's arms, <b>frightened at the sight of his own father</b> — the glaring bronze, the horsehair crest nodding terror from the helmet's ridge — and his mother and father laughed aloud.",
+        "Hector prayed over his son: <b>let them say one day, he is a far better man than his father</b>, coming home from the war with the bloody gear of the enemy he has killed, and gladden his mother's heart.",
+        "Paris came on <b>like a stallion that breaks its halter</b> and gallops pounding over the plain to bathe in the sweet river, head flung high, mane streaming over his shoulders, glorying in his own speed."
+      ]
+    }
+  ],
+
+  characters: {
+    "Mortals": [
+      { name: "Hector", epithet: "breaker of horses, bulwark of Troy", role: "The book belongs to him. Sent from the field to the city, he refuses wine and rest, rebukes Paris, and gives Andromache and his infant son a farewell shadowed by his own certain foreknowledge of Troy's fall — then goes back to the war for shame's sake.", tag: "The hero who knows he loses" },
+      { name: "Andromache", epithet: "daughter of Eetion, Hector's wife", role: "Has already lost father, seven brothers, and mother to Achilles; Hector is all her family now. She begs him from the wall to fight defensively and not orphan their child. Takes the baby back smiling through her tears.", tag: "The last family she has" },
+      { name: "Astyanax", epithet: "\"lord of the city,\" called Scamandrius by his father", role: "Hector's infant son, who screams in terror at his father's plumed helmet until Hector lifts it off. Named for a city that will not outlast his father.", tag: "The frightened child" },
+      { name: "Glaucus", epithet: "grandson of Bellerophon, captain of Lycia", role: "Answers Diomedes with the leaves-and-lineage speech, tells the tale of Bellerophon and the murderous tablet, and — discovering an inherited guest-bond — trades armor with his enemy, gold for bronze.", tag: "The generations of leaves" },
+      { name: "Diomedes", epithet: "son of Tydeus, lord of the war cry", role: "Fresh from wounding two gods, he now declines to fight a man who might be one — and when he learns their grandfathers were guest-friends, plants his spear and clasps Glaucus's hand. The lion who kept a mortal courtesy.", tag: "The enemy who would not kill" },
+      { name: "Paris", epithet: "Alexander, prince of Troy", role: "Found polishing armor while his city bleeds; rebuked by Hector, he arms and comes bounding to war like a loosed stallion — the beautiful cause of the whole ruin, eager at last.", tag: "The loosed stallion" },
+      { name: "Helen", epithet: "daughter of Zeus, cause of the war", role: "Sits among her women in bitter self-loathing, calling herself a curse and wishing she had never been born, begging Hector to rest. She sees her guilt clearly and can undo none of it.", tag: "The self-condemned" },
+      { name: "Hecuba", epithet: "queen of Troy, mother of Hector", role: "Offers her son wine and rest; he refuses both. She leads the women to lay the great robe on Athena's knees and pray the goddess to spare the city.", tag: "The queen at the altar" },
+      { name: "Agamemnon", epithet: "lord of men, high king", role: "Stops Menelaus from sparing the suppliant Adrestus with the book's coldest creed — let none escape, not even the unborn — and spears the kneeling man himself.", tag: "The total-war king" }
+    ],
+    "Gods & Powers": [
+      { name: "Athena", epithet: "grey-eyed daughter of Zeus", role: "The goddess Troy's women beg to hold back Diomedes. They lay the finest robe on her knees and vow twelve heifers — and she turns her head away, refusing the prayer in silence.", tag: "The turned head", god: true },
+      { name: "Zeus", epithet: "father of gods and men, guardian of guests", role: "The unseen keeper of xenia that Glaucus and Diomedes honor — and the god who, Homer says, stole Glaucus's wits so he traded gold armor for bronze. Guest-friendship is his law; the whole war is a suit brought under it.", tag: "The law behind the bond", god: true }
+    ]
+  },
+
+  threads: [
+    {
+      dir: "back",
+      to: "iliad-05",
+      title: "The lion's courtesy",
+      note: "Last book ended with a hint: watch what <span class='who'>Diomedes</span> does when he meets an enemy whose grandfather once hosted his. Here is the answer. The man who wounded <span class='god'>Aphrodite</span> and <span class='god'>Ares</span> now <i>plants his spear in the ground</i> and clasps Glaucus's hand — the most god-touched killer on the plain still keeps a mortal law the war-gods do not. The exaltation of Book 5 and the courtesy of Book 6 are the same man."
+    },
+    {
+      dir: "back",
+      to: "iliad-03",
+      title: "The bond Paris broke",
+      note: "Book 3 showed <span class='god'>Aphrodite</span> lift <span class='who'>Paris</span> from his lost duel and lay him beside <span class='who'>Helen</span>. Book 6 returns to that very bedroom — <span class='who'>Hector</span> hauling him back to war — and names the wound underneath the whole siege: Paris was <span class='who'>Menelaus</span>'s <i>guest</i> and stole his wife. Set that against Glaucus and Diomedes honoring guest-friendship on the field, and you see the war's true charge: <i>xenia</i>, violated by one man and upheld by two others in the same book."
+    },
+    {
+      dir: "back",
+      to: "iliad-01",
+      title: "Two engines: wrath and shame",
+      note: "The poem opened on <span class='who'>Achilles</span> withdrawing from the war in <i>wrath</i>, nursing his honor by the ships. Book 6 gives us its mirror: <span class='who'>Hector</span> walking <i>into</i> the war out of <i>aidōs</i> — shame before his people — though he foresees it will kill him and enslave his wife. The <i>Iliad</i> runs on these two forces, and here you can hold them side by side."
+    },
+    {
+      dir: "ahead",
+      to: "iliad-07",
+      title: "Back to the plain",
+      note: "Hector goes out of the gates having promised Andromache nothing but his own courage, and Troy's fighting spirit rides back with him. What a rallied, resolved Hector does once he is on the open field again is the next turn of the thread. A hint, no more."
+    }
+  ],
+
+  quiz: [
+    {
+      n: "I · No ransom, no mercy",
+      kind: "event",
+      q: "Menelaus is about to spare the suppliant Adrestus for a rich ransom. What happens?",
+      opts: [
+        "Adrestus breaks free and escapes to the city",
+        "Agamemnon rushes up, preaches total war — spare not even the unborn — and spears the kneeling man",
+        "Hector intervenes and takes Adrestus prisoner instead",
+        "Menelaus accepts the ransom and lets him go"
+      ],
+      correct: 1,
+      truth: "<b>The book's coldest note, struck first.</b> Agamemnon's creed — let none escape, not even the boy in the womb — is the plain's logic at its purest. Homer opens on this cruelty on purpose, so that the guest-friendship and the farewell still to come land against a fully dark ground. Menelaus's mercy is overruled and the suppliant dies."
+    },
+    {
+      n: "II · The errand into the city",
+      kind: "event",
+      q: "Why does the seer Helenus send Hector off the battlefield and up into Troy?",
+      opts: [
+        "To bring Paris back to the fighting by force",
+        "To have the women lay a robe on Athena's knees and pray her to hold back the raging Diomedes",
+        "To fetch fresh chariots and horses for the Trojan line",
+        "To warn Priam that the walls are about to fall"
+      ],
+      correct: 1,
+      truth: "<b>The prayer against Diomedes.</b> So terrifying is Diomedes after Book 5 that Helenus can think of no defense but heaven: send Hector to bid Hecuba gather the women, offer Athena the finest robe and twelve heifers, and beg her to pity the city. The errand is what carries Hector home into the heart of the book."
+    },
+    {
+      n: "III · Leaves, and an inherited bond",
+      kind: "event",
+      q: "Glaucus and Diomedes meet between the armies. Why do they end up trading armor instead of blows?",
+      opts: [
+        "Zeus forbids them to fight on pain of death",
+        "They discover their grandfathers were guest-friends, so the inherited bond of xenia outranks the war",
+        "Diomedes is too wounded from Book 5 to raise his spear",
+        "Glaucus surrenders and offers his gear as tribute"
+      ],
+      correct: 1,
+      truth: "<b>Guest-friendship, inherited.</b> Glaucus answers with the leaves simile and his lineage; Diomedes realizes his grandfather Oeneus once hosted Bellerophon twenty days. The bond passes down the generations, so they clasp hands and swap armor — and Zeus steals Glaucus's wits, gold for bronze. Set it against Paris, who <i>broke</i> exactly this bond to start the war."
+    },
+    {
+      n: "IV · The turned head",
+      kind: "meaning",
+      q: "The women of Troy do everything Helenus asked — the robe, the vow, the prayer. What does Homer show us happening?",
+      opts: [
+        "Athena accepts the offering and Diomedes falls",
+        "Athena turns her head away, refusing the prayer in silence",
+        "Zeus answers instead and promises to spare the city",
+        "The statue weeps, an omen the priestess reads as hope"
+      ],
+      correct: 1,
+      truth: "<b>Refused, in half a line.</b> The mothers pray perfectly and Athena simply <i>turns her head away</i> — Homer spends no more words on it. It is Book 5's divine machinery seen from below: the goddess who drove Diomedes' spear cannot be bought back with any robe. The reader knows the prayer is dead before the women rise."
+    },
+    {
+      n: "V · The child and the crest",
+      kind: "event",
+      q: "At the Scaean Gates, what happens when Hector reaches out to hold his infant son?",
+      opts: [
+        "The baby laughs and grabs his father's spear",
+        "The child screams in terror at the bronze helmet and nodding crest, until Hector takes it off and prays the boy will surpass him",
+        "Andromache refuses to let Hector touch him",
+        "Astyanax is asleep and does not wake"
+      ],
+      correct: 1,
+      truth: "<b>The truest stroke in the book.</b> The war-gear that makes Hector a hero makes him a monster to his own son; he must strip off the helmet to be a father for one moment. He kisses the boy and prays: <i>let them say he is far better than his father.</i> Homer shows the whole cost of the war inside one family, one gesture."
+    },
+    {
+      n: "VI · The thread back to Book 5",
+      kind: "thread",
+      q: "How is Diomedes' behavior in Book 6 the deliberate payoff of a hint Homer planted at the close of Book 5?",
+      opts: [
+        "He finally kills the god Ares he only wounded before",
+        "He apologizes to Agamemnon for his silence",
+        "The killer who wounded two gods now plants his spear and honors guest-friendship rather than fight Glaucus",
+        "He returns the gold armor to Aphrodite's temple"
+      ],
+      correct: 2,
+      truth: "<b>Exaltation and courtesy, one man.</b> Book 5 ended by asking what Diomedes would do meeting an enemy his family once hosted. The answer: the most god-touched killer on the plain lowers his spear and keeps a mortal law — <i>xenia</i> — that the war-gods themselves ignore. The greatness of Book 5 and the grace of Book 6 belong to the same hero."
+    }
+  ]
+};
+</script>
+<script>
+/* ---- data registry ---- */
+window.LOOM_DATA = window.LOOM_DATA || {};
+const LOAD = window.LOOM_BOOKS || [];          // authored ids to actually load (avoids 404s)
+
+/* ---- canonical 48-book plan (the home grid) ---- */
+const pad = n => String(n).padStart(2,'0');
+const PLAN = [];
+for(let i=1;i<=24;i++) PLAN.push({ id:`iliad-${pad(i)}`,   epic:"The Iliad",   short:"Iliad",   n:i });
+for(let i=1;i<=24;i++) PLAN.push({ id:`odyssey-${pad(i)}`, epic:"The Odyssey", short:"Odyssey", n:i });
+const ORDER = PLAN.map(p => p.id);
+
+/* quiz kinds — the two comprehension layers, plus the cross-book thread */
+const KIND = {
+  event:   { label:"Event recall",  cls:"k-event"   },
+  meaning: { label:"Why it matters", cls:"k-meaning" },
+  thread:  { label:"Cross-book thread", cls:"k-thread" }
+};
+
+let current=null;
+const authored = id => !!window.LOOM_DATA[id];
+const isRead = id => localStorage.getItem('loom.read.'+id)==='1';
+const setRead = (id,v) => localStorage.setItem('loom.read.'+id, v?'1':'0');
+const bestScore = id => { const v=localStorage.getItem('loom.best.'+id); return v==null?null:+v; };
+const saveScore = (id,s) => { const b=bestScore(id); if(b==null||s>b) localStorage.setItem('loom.best.'+id, s); };
+const priorMiss = id => { try{ return JSON.parse(localStorage.getItem('loom.miss.'+id)||'[]'); }catch(e){ return []; } };
+const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringify(arr));
+const clearMiss = (id,qi) => saveMiss(id, priorMiss(id).filter(x=>x!==qi));
+function allMisses(){
+  const out=[];
+  ORDER.filter(authored).forEach(id=>{
+    const d=window.LOOM_DATA[id];
+    priorMiss(id).forEach(qi=>{ if(d.quiz && d.quiz[qi]) out.push({id, qi, item:d.quiz[qi]}); });
+  });
+  return out;
+}
+const planOf = id => PLAN.find(p=>p.id===id);
+const label = id => { const p=planOf(id); return p ? `${p.short} · Book ${p.n}` : id; };
+
+function boot(){
+  const last = localStorage.getItem('loom.last');
+  if(last && authored(last)) showBook(last); else showHome();
+}
+
+/* ---- HOME ---- */
+function showHome(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML='';
+  const authoredAll = PLAN.filter(p=>authored(p.id)).length;
+  const readAll = PLAN.filter(p=>isRead(p.id)).length;
+  const threadCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].threads||[]).length), 0);
+  let h='';
+  const missCount = allMisses().length;
+  h += `<div class="progress">${authoredAll} of 48 books on the loom · ${readAll} read</div>`;
+  h += `<div class="progbar"><i style="width:${(authoredAll/48*100).toFixed(1)}%"></i></div>`;
+  if(threadCount || missCount){
+    h += `<div class="homeacts">`;
+    if(threadCount) h += `<button onclick="showThreads()">✦ The woven threads (${threadCount}) →</button>`;
+    if(missCount)   h += `<button onclick="showReview()">↺ Re-walk the missed omens (${missCount}) →</button>`;
+    h += `</div>`;
+  }
+  ["Iliad","Odyssey"].forEach(short=>{
+    const list = PLAN.filter(p=>p.short===short);
+    const a = list.filter(p=>authored(p.id)).length;
+    h += `<div class="band"><span>${short} · ${a}/24</span><hr></div><div class="grid">`;
+    list.forEach(p=>{
+      if(authored(p.id)){
+        const d = window.LOOM_DATA[p.id]; const best=bestScore(p.id); const read=isRead(p.id);
+        const total = d.quiz?d.quiz.length:0;
+        const st = best!=null ? `${best}/${total}${read?' · ✓':''}` : (read?'✓ read':'open');
+        h += `<div class="cell${read?' read':''}" onclick="showBook('${p.id}')"><div class="bk">Book ${p.n}</div><div class="tt">${d.meta.title}</div><div class="st">${st}</div></div>`;
+      } else {
+        h += `<div class="cell unwritten"><div class="bk">Book ${p.n}</div><div class="tt">unwritten</div></div>`;
+      }
+    });
+    h += `</div>`;
+  });
+  document.getElementById('view').innerHTML = h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- THREADS (cross-book view) ---- */
+function showThreads(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button></div>`+
+    `<div class="grp"><button class="active" disabled>The woven threads</button></div>`;
+  let h = `<div class="crown">◈ The Loom remembers ◈</div><h1>The Woven Threads</h1>`+
+          `<div class="sub">how each book ties back into the ones before — and forward into the ones to come</div>`+
+          `<div class="meta">follow a thread to walk the link in either direction</div>`;
+  const sources = ORDER.filter(id=>authored(id) && (window.LOOM_DATA[id].threads||[]).length);
+  if(!sources.length){
+    h += `<div class="empty">No threads woven yet. Author a book with a <i>threads</i> entry and they appear here.</div>`;
+  } else {
+    sources.forEach(id=>{
+      const d = window.LOOM_DATA[id];
+      h += `<div class="band"><span>From ${label(id)} — ${d.meta.title}</span><hr></div>`;
+      (d.threads||[]).forEach(t=> h += threadCard(t, id));
+    });
+  }
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+  document.getElementById('view').innerHTML = h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* one thread card; `srcId` is the book it lives on */
+function threadCard(t, srcId){
+  const dir = t.dir==='back' ? '↩ a thread back' : (t.dir==='ahead' ? 'a thread ahead ↪' : '↔ a thread');
+  const toAuthored = authored(t.to);
+  const btn = toAuthored
+    ? `<button class="lk" onclick="showBook('${t.to}')">Read ${label(t.to)} →</button>`
+    : `<button class="lk" disabled>${label(t.to)} — unwritten</button>`;
+  return `<div class="thread"><div class="dir">${dir}</div>`+
+         `<div class="from">on ${label(srcId)} · links to ${label(t.to)}</div>`+
+         `<h3 class="tt">${t.title}</h3><p class="nt">${t.note}</p>${btn}</div>`;
+}
+
+/* ---- REVIEW (the missed omens, across every book) ---- */
+function showReview(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showThreads()">Threads</button></div>`+
+    `<div class="grp"><button class="active" disabled>Re-walking the missed</button></div>`;
+  const items = allMisses();
+  let h = `<div class="crown">◈ The Loom keeps its frayed strands ◈</div><h1>The Missed Omens</h1>`+
+          `<div class="sub">every omen you let slip, gathered from all the books into one re-walking</div>`+
+          `<div class="meta">answer true and the strand is mended — it leaves this page</div>`;
+  if(!items.length){
+    h += `<div class="empty">No omens outstanding. Every strand you missed has been re-walked — the loom is clean.</div>`;
+    h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+    document.getElementById('view').innerHTML=h;
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  h += `<div class="tally" id="rtally">${items.length} frayed strand${items.length>1?'s':''} · none yet re-walked</div>`;
+  h += `<div id="review"></div>`;
+  h += `<div id="reviewdone"><div class="crown" style="color:#eef3e2;">The Strands Re-walked</div><div class="rsum" id="rsum"></div><button onclick="showReview()">Gather what still frays</button></div>`;
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button></div>`;
+  document.getElementById('view').innerHTML=h;
+  buildReview(items);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function buildReview(items){
+  const box=document.getElementById('review');
+  const total=items.length; let answered=0, mended=0;
+  items.forEach(({id,qi,item})=>{
+    const card=document.createElement('div'); card.className='q';
+    const ki=KIND[item.kind||'event']||KIND.event;
+    card.innerHTML =
+      `<div class="reviewfrom">${label(id)} · ${item.n||''}</div>`+
+      `<div class="qhead"><span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){
+          b.classList.add('correct'); clearMiss(id,qi); mended++;
+          card.classList.add('cleared');
+        } else {
+          b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+        }
+        truth.classList.add('show'); answered++;
+        document.getElementById('rtally').textContent =
+          `Re-walked ${answered} of ${total} · ${mended} mended, ${answered-mended} still frayed`;
+        if(answered===total) reviewDone(mended,total);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); box.appendChild(card);
+  });
+}
+
+function reviewDone(mended,total){
+  const d=document.getElementById('reviewdone');
+  const still=total-mended;
+  let line;
+  if(still===0) line=`All ${total} strands mended. What you once let slip, you now hold. The loom is clean.`;
+  else if(mended===0) line=`None mended this pass — these ${still} run deep. Re-walk their books, then gather them again.`;
+  else line=`${mended} mended, ${still} still fray. The mended ones leave this page; come back for the rest.`;
+  document.getElementById('rsum').textContent=line;
+  d.classList.add('show'); d.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- BOOK ---- */
+function neighbors(id){
+  const a = ORDER.filter(authored);
+  const i = a.indexOf(id);
+  return { prev: i>0?a[i-1]:null, next: (i>=0&&i<a.length-1)?a[i+1]:null };
+}
+
+function topbar(id){
+  const p = planOf(id);
+  const {prev,next} = neighbors(id);
+  const read = isRead(id);
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp">`+
+      `<button onclick="showHome()">✦ All Books</button>`+
+      `<button ${prev?`onclick="showBook('${prev}')"`:'disabled'}>← Prev</button>`+
+      `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showReview()">Review</button>`+
+    `</div>`+
+    `<div class="grp"><span class="pos">${p.short} · Book ${p.n}</span>`+
+      `<button class="readtoggle${read?' on':''}" onclick="toggleRead('${id}')">${read?'✓ Read':'Mark read'}</button>`+
+    `</div>`;
+}
+
+function toggleRead(id){ setRead(id, !isRead(id)); topbar(id); }
+
+function showBook(id){
+  if(!authored(id)) return;
+  current=id; localStorage.setItem('loom.last', id);
+  topbar(id);
+  renderBody(window.LOOM_DATA[id]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderBody(d){
+  const m=d.meta; let h='';
+  h += `<div class="crown">◈ ${m.song} · ${m.epic} ◈</div><h1>${m.title}</h1>`;
+  if(m.subtitle) h += `<div class="sub">${m.subtitle}</div>`;
+  if(m.tagline) h += `<div class="meta">${m.tagline}</div>`;
+  if(m.epigraph) h += `<div class="invoke">${m.epigraph.text}<span class="src">${m.epigraph.src||''}</span></div>`;
+  if(d.scene&&d.scene.length) h += `<div class="scene"><span class="lbl">✦ The scene is set ✦</span>${d.scene.map(p=>`<p>${p}</p>`).join('')}</div>`;
+  if(d.terms&&d.terms.length){
+    h += `<div class="band"><span>Words to carry</span><hr></div><div class="terms">`+
+      d.terms.map(t=>`<div class="t"><span class="gk">${t.gk}</span> — <span class="df">${t.def}</span></div>`).join('')+`</div>`;
+  }
+  if(d.movements&&d.movements.length){
+    h += `<div class="band"><span>The movements</span><hr></div>`;
+    d.movements.forEach(mv=>{ h += `<div class="movement"><div class="mnum">${mv.n||''}</div><h3 class="mtitle">${mv.title}</h3>${mv.what}<div class="why"><b>Why it matters:</b> ${mv.why}</div></div>`; });
+  }
+  if(d.panels&&d.panels.length){
+    d.panels.forEach(p=>{ h += `<div class="simile"><span class="lbl">${p.label}</span>${p.lines.map(l=>`<p>${l}</p>`).join('')}</div>`; });
+  }
+  if(d.characters){
+    Object.keys(d.characters).forEach(group=>{
+      h += `<div class="band"><span>${group}</span><hr></div>`;
+      d.characters[group].forEach(c=>{
+        const godcls=(group.toLowerCase().includes('god')||c.god)?' god':'';
+        h += `<div class="c"><h4 class="nm">${c.name}</h4><div class="ep${godcls}">${c.epithet}</div><p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}</div>`;
+      });
+    });
+  }
+  if(d.threads&&d.threads.length){
+    h += `<div class="band"><span>Threads of the Loom</span><hr></div>`;
+    d.threads.forEach(t=> h += threadCard(t, current));
+  }
+  if(d.quiz&&d.quiz.length){
+    h += `<div class="divider">❧ · ❧ · ❧</div>`;
+    h += `<div class="gate"><div class="crown">◈ The Ninth Hour ◈</div><h2>The Oracle's Examination</h2><div class="sub">${d.quiz.length} omens · the thread holds or the shears draw near</div></div>`;
+    const best=bestScore(current);
+    h += `<div class="priorscore">${best!=null?`Your best reckoning here: ${best} / ${d.quiz.length}`:'Not yet examined on this book.'}</div>`;
+    const pm = priorMiss(current);
+    if(pm.length) h += `<div class="missnote">↺ ${pm.length} omen${pm.length>1?'s':''} slipped last time — marked below. Linger there.</div>`;
+    h += `<div class="tally" id="tally">${d.quiz.length} omens to read · none yet turned</div><div id="quiz"></div>`;
+    h += `<div id="verdict"><div class="crown" style="color:#e8c79a;">The Fates Render Judgment</div><div class="score" id="scoreNum"></div><div class="vline" id="vLine"></div><div class="breakdown" id="breakdown"></div><div class="small">Tap a truth to read it · the thread spins on</div><button onclick="showBook(current)">Sit the omens again</button></div>`;
+  }
+  const {prev,next}=neighbors(current);
+  h += `<div class="footnav"><button ${prev?`onclick="showBook('${prev}')"`:'disabled'}>← Prev</button>`+
+       `<button onclick="showHome()">✦ All Books</button>`+
+       `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button></div>`;
+
+  document.getElementById('view').innerHTML=h;
+  if(d.quiz&&d.quiz.length) buildQuiz(d.quiz);
+}
+
+/* ---- quiz ---- */
+function buildQuiz(Q){
+  const quiz=document.getElementById('quiz');
+  const pm = priorMiss(current);
+  let answered=0, score=0;
+  const missArr=[];
+  const stats={};  // kind -> {c,t}
+  Q.forEach(item=>{ const k=item.kind||'event'; (stats[k]=stats[k]||{c:0,t:0}).t++; });
+
+  Q.forEach((item,qi)=>{
+    const card=document.createElement('div'); card.className='q';
+    const k = item.kind||'event';
+    const ki = KIND[k]||KIND.event;
+    const missedBefore = pm.includes(qi);
+    card.innerHTML=
+      `<div class="qhead"><span class="qn">${item.n||''}</span>`+
+      `<span class="qkind ${ki.cls}">${ki.label}</span>`+
+      `${missedBefore?'<span class="missflag">↺ missed last time</span>':''}</div>`+
+      `<div class="qt">${item.q}</div>`;
+    const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
+    item.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; }
+        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct'); missArr.push(qi); }
+        truth.classList.add('show'); answered++;
+        document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
+        if(answered===Q.length) reveal(score, Q.length, stats, missArr);
+      };
+      card.appendChild(b);
+    });
+    card.appendChild(truth); quiz.appendChild(card);
+  });
+}
+
+function reveal(score,total,stats,missArr){
+  saveScore(current,score);
+  saveMiss(current, missArr.slice().sort((a,b)=>a-b));
+  const v=document.getElementById('verdict');
+  document.getElementById('scoreNum').textContent=`${score} / ${total}`;
+  const pct=score/total; let line;
+  if(pct===1) line="The thread runs golden. You read clearly — the Fates smile on this one.";
+  else if(pct>=0.7) line="The thread holds bright. The book lives in you; a strand or two slipped. Onward.";
+  else if(pct>=0.4) line="The thread holds. The spine is yours, the finer turns still forming. Re-walk the movements and go on.";
+  else if(pct>0) line="One light in the fog. A single true sight is a beginning; the rest passed too quick. Linger here once more.";
+  else line="The thread frays at the meaning, not the count. The pages turned faster than the tale took root. No frown — sit longer.";
+  document.getElementById('vLine').textContent=line;
+  const order=['event','meaning','thread'];
+  const bd = order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
+  document.getElementById('breakdown').innerHTML = bd;
+  v.classList.add('show'); v.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---- kickoff: load authored data files, then boot (runs after all decls) ---- */
+/* single-file build: all book data is inlined above, so boot directly */
+boot();
+</script>
+</body>
+</html>
