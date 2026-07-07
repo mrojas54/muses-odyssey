@@ -6,8 +6,9 @@
 A data-driven static app. (Internal codename in the source: `LOOM_*` — the data
 registry and localStorage keys keep that prefix; the *product* name is The Muse's
 Odyssey.) One renderer (`app/index.html`), one data file per book
-(`data/<id>.js`), one manifest (`data/manifest.js`). No build step, no server —
-double-click `app/index.html` to read.
+(`data/<id>.js`), one manifest (`data/manifest.js`). No build step or server is
+needed to *read* it — double-click `app/index.html`. (A bundler produces the
+deployed single file; see **Build & deploy**.)
 
 ## How it works
 - Data files are **`.js`, not `.json`**, on purpose: browsers block `fetch()` on
@@ -20,6 +21,24 @@ double-click `app/index.html` to read.
 ## The data contract
 See `schema.md`. To add a book: write `data/<id>.js`, append the id to
 `window.LOOM_BOOKS` in `data/manifest.js`. Nothing else.
+
+## Build & deploy
+`app/index.html` + `data/*.js` are the source of truth; read them locally by
+double-clicking `app/index.html` (no build needed). Two derived, self-contained
+single files come from the bundler:
+
+    node build-single-file.js          # inline manifest + all books, iOS/file:// hardened
+    cp the-muses-odyssey.html index.html
+
+- `the-muses-odyssey.html` — offline / phone / AirDrop copy (git-ignored; regenerate anytime).
+- `index.html` (repo root, **committed**) — the byte-identical deploy copy GitHub
+  Pages serves at https://mrojas54.github.io/muses-odyssey/.
+
+`main` is the trunk: it carries the source tree **and** the built `index.html`, so
+the branch you edit is the branch you deploy. Deploy = rebuild → copy to
+`index.html` → commit → push `main` (Pages redeploys on push). Re-run the bundler
+after authoring a book (once its id is in `data/manifest.js`) so the deployed
+bundle matches the source.
 
 ## Voice — the Loom / the Oracle
 - Parchment register, lightly mythic, never purple. Georgia serif, wine + gold.
