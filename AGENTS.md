@@ -129,3 +129,6 @@ select evtname, evtenabled from pg_event_trigger where evtname = 'on_create_tabl
 Or run the Supabase security advisor (`supabase db advisors`, or MCP
 `get_advisors` type `security`) before committing a migration — it flags any
 `public` table still missing RLS or a policy.
+
+## HTML Artifacts
+When generating HTML study artifacts (book walkthroughs, character sheets, examinations), confirm the file was fully written and report the final path before ending the session.
