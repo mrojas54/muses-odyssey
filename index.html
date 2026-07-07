@@ -2812,8 +2812,43 @@ function shuffleOpts(item){
   for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
   return { opts: idx.map(i=>item.opts[i]), correct: idx.indexOf(item.correct) };
 }
-function buildQuiz(Q){
+/* A read book with a perfect best score is shown as already-completed: every
+   question rendered pre-answered (correct option locked green, truth revealed),
+   the golden verdict shown statically, and the "Sit the omens again" button
+   repointed to a fresh attempt. No per-answer storage exists to restore, but a
+   6/6 seed means every answer was correct, so this reconstruction is faithful.
+   forceFresh (from retakeQuiz) skips this and builds a live, blank quiz. */
+function buildQuiz(Q, forceFresh){
   const quiz=document.getElementById('quiz');
+  if(!forceFresh && isRead(current) && bestScore(current)===Q.length){
+    Q.forEach(item=>{
+      const card=document.createElement('div'); card.className='q';
+      const k=item.kind||'event'; const ki=KIND[k]||KIND.event;
+      card.innerHTML=
+        `<div class="qhead"><span class="qn">${item.n||''}</span>`+
+        `<span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+        `<div class="qt">${item.q}</div>`;
+      const truth=document.createElement('div'); truth.className='truth show'; truth.innerHTML=item.truth;
+      const view=shuffleOpts(item);
+      view.opts.forEach((text,oi)=>{
+        const b=document.createElement('button'); b.className='opt'; b.textContent=text; b.disabled=true;
+        if(oi===view.correct) b.classList.add('correct');
+        card.appendChild(b);
+      });
+      card.appendChild(truth); quiz.appendChild(card);
+    });
+    document.getElementById('tally').textContent=`All omens already read · ${Q.length} of ${Q.length} · the thread held`;
+    const stats={}; Q.forEach(item=>{ const k=item.kind||'event'; (stats[k]=stats[k]||{c:0,t:0}); stats[k].c++; stats[k].t++; });
+    const v=document.getElementById('verdict');
+    document.getElementById('scoreNum').textContent=`${Q.length} / ${Q.length}`;
+    document.getElementById('vLine').textContent="The thread runs golden. You read clearly — the Fates smile on this one.";
+    const order=['event','meaning','thread'];
+    document.getElementById('breakdown').innerHTML =
+      order.filter(k=>stats[k]).map(k=>`<span class="bk">${KIND[k].label} · ${stats[k].c}/${stats[k].t}</span>`).join('');
+    v.classList.add('show');
+    const again=v.querySelector('button'); if(again) again.onclick=retakeQuiz;
+    return;
+  }
   const pm = priorMiss(current);
   let answered=0, score=0;
   const missArr=[];
@@ -2847,6 +2882,17 @@ function buildQuiz(Q){
     });
     card.appendChild(truth); quiz.appendChild(card);
   });
+}
+
+/* Leave the completed view and start a fresh, blank attempt without disturbing
+   the stored best score (saveScore only ever raises it). */
+function retakeQuiz(){
+  const d=window.LOOM_DATA[current]; if(!d||!d.quiz) return;
+  const v=document.getElementById('verdict');
+  if(v){ v.classList.remove('show'); const again=v.querySelector('button'); if(again) again.onclick=()=>showBook(current); }
+  document.getElementById('quiz').innerHTML='';
+  document.getElementById('tally').textContent=`${d.quiz.length} omens to read · none yet turned`;
+  buildQuiz(d.quiz, true);
 }
 
 function reveal(score,total,stats,missArr){
