@@ -5,3 +5,6 @@ node_modules/
 .superpowers/
 test-results/
 playwright-report/
+
+# build artifact (regenerate with build-single-file.js; index.html is the committed deploy copy)
+the-muses-odyssey.html
