@@ -110,8 +110,3 @@ select evtname, evtenabled from pg_event_trigger where evtname = 'on_create_tabl
 Or run the Supabase security advisor (`supabase db advisors`, or MCP
 `get_advisors` type `security`) before committing a migration — it flags any
 `public` table still missing RLS or a policy.
-
-
-<claude-mem-context>
-
-</claude-mem-context>

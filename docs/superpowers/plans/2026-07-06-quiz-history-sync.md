@@ -17,8 +17,7 @@
 - **Merge policy:** `best_score = max()`, `read = OR` (both monotonic), `misses = last-write-wins` by `updated_at`.
 - **Voice:** Fates/Loom/Oracle register. The History view is **Chronos** (Χρόνος, personified Time) — used *thematically only*; the app must NOT present him as a character in the *Iliad*/*Odyssey*, and must NOT conflate him with **Kronos** the Titan.
 - **`book_id` values:** the existing id strings (`iliad-01` … `odyssey-24`) plus the literal `exam` for the Grand Examination.
-- **Config seam:** all sync config flows through `window.LOOM_SYNC` → the `CFG` object (the single testability hook).
-- **Runtime surface gate (deploy decision):** the deployed artifact is the single-file bundle at the repo root `index.html`, served by GitHub Pages *and* used offline via `file://`. Sync must self-gate on origin: `syncConfigured()` requires `location.protocol` to be `http`/`https`. On Pages (`https:`) sync is live; opened as a `file://` bundle it is silent. The bundler is therefore **unchanged** — no build-time disable.
+- **Config seam:** all sync config flows through `window.LOOM_SYNC` → the `CFG` object. This is the single testability + offline-disable hook.
 - **Token rotation:** the `muse_reader` JWT carries a hard 90-day `exp`; rotation is manual (paste a fresh token into `CFG.token`, redeploy).
 
 **Working tree:** Execute this plan inside a clone of the live repo **`mrojas54/muses-odyssey`** (one repo — the current design folder was scratch). All `git` steps below target that clone.
@@ -30,12 +29,11 @@
 | File | Create/Modify | Responsibility |
 |------|---------------|----------------|
 | `app/index.html` | Modify | Add the sync module + wire boot/reveal/examReveal/buildQuiz/buildExam; add the Chronos view, its buttons, and CSS. |
-| `supabase/schema.sql` | Create | DDL for the three tables, the `muse_reader` role, RLS policies, and grants. Run once in the Supabase SQL editor (reference artifact, not loaded by the app). |
+| `supabase/schema.sql` | Create | DDL for the three tables, an auto-RLS event trigger (forces RLS on every future `public` table), the `muse_reader` role, RLS policies, and grants. Run once in the Supabase SQL editor (reference artifact, not loaded by the app). |
 | `package.json` | Create | Declares the `@playwright/test` devDependency and a `test` script. |
 | `playwright.config.js` | Create | Serves the repo root and points tests at `/app/index.html`. |
 | `tests/smoke.spec.js` | Create | The three smoke cases (pull-on-load, push-on-finish, fail-soft). |
-| `build-single-file.js` | Unchanged (runs) | Bundles the sync-aware `app/index.html` → `the-muses-odyssey.html`. No edit needed — the runtime protocol gate handles offline. |
-| `the-muses-odyssey.html` / root `index.html` | Regenerate | Built bundle; the root `index.html` copy is what GitHub Pages serves. Rebuilt in Tasks 9–10. |
+| `build-single-file.js` | Modify | Inject `window.LOOM_SYNC = null` into the offline bundle so sync hard-disables there. |
 
 ---
 
@@ -56,6 +54,30 @@ Create `supabase/schema.sql`:
 ```sql
 -- ── Quiz History Sync schema ───────────────────────────────────────────────
 -- Run once in the Supabase SQL editor. Single shared reader; no per-user rows.
+
+-- ── Auto-RLS: force RLS ON for every table ever created in `public` ─────────
+-- SQL-created tables ship with RLS OFF (only the dashboard Table Editor auto-
+-- enables it). As this grows into a book-club reading-comprehension app, new
+-- tables (discussion threads, member notes, per-chapter responses…) must never
+-- land RLS-off and silently leak reader data through the Data API. This DDL
+-- event trigger flips RLS on at CREATE TABLE time. RLS-on with no policy =
+-- deny-all, so every new table fails CLOSED until you write a policy for it.
+create or replace function public.force_rls_on_new_tables()
+  returns event_trigger language plpgsql as $$
+declare obj record;
+begin
+  for obj in
+    select * from pg_event_trigger_ddl_commands()
+    where command_tag = 'CREATE TABLE' and schema_name = 'public'
+  loop
+    execute format('alter table %s enable row level security', obj.object_identity);
+  end loop;
+end;
+$$;
+drop event trigger if exists on_create_table_force_rls;
+create event trigger on_create_table_force_rls
+  on ddl_command_end when tag in ('CREATE TABLE')
+  execute function public.force_rls_on_new_tables();
 
 -- current synced state, one row per book (or 'exam')
 create table if not exists public.book_progress (
@@ -104,6 +126,10 @@ grant select, insert          on public.attempts_raw     to muse_reader;
 grant usage, select on all sequences in schema public to muse_reader;
 
 -- ── RLS: only a caller presenting the muse_reader token may touch the tables ─
+-- The event trigger above already flipped these ON at CREATE TABLE time on a
+-- fresh run. These explicit ALTERs are idempotent belt-and-suspenders: they
+-- also cover a RE-run, where `create table if not exists` skips creation so the
+-- trigger never fires for the pre-existing three.
 alter table public.book_progress   enable row level security;
 alter table public.attempts_summary enable row level security;
 alter table public.attempts_raw     enable row level security;
@@ -115,7 +141,12 @@ create policy muse_rw on public.attempts_raw     for all to muse_reader using (t
 
 - [ ] **Step 2: Run it in Supabase**
 
-Paste the file into the Supabase **SQL editor** and run. Confirm no errors and that the three tables appear under **Table editor** with RLS enabled (a shield icon on each).
+Paste the file into the Supabase **SQL editor** and run. Confirm no errors and that the three tables appear under **Table editor** with RLS enabled (a shield icon on each) — the auto-RLS event trigger enabled it at creation. Sanity-check the trigger is armed for future tables:
+
+```sql
+select evtname, evtenabled from pg_event_trigger where evtname = 'on_create_table_force_rls';
+-- Expect one row; evtenabled = 'O' (enabled)
+```
 
 - [ ] **Step 3: Mint the 90-day `muse_reader` token**
 
@@ -277,8 +308,7 @@ const CFG = (typeof window.LOOM_SYNC !== 'undefined') ? window.LOOM_SYNC : {
   token: "YOUR_MUSE_READER_JWT"                // Bearer; RLS gates on its role claim
 };
 const syncConfigured = () => !!(CFG && CFG.url && CFG.token
-  && CFG.url.indexOf('YOUR_') === -1 && CFG.token.indexOf('YOUR_') === -1
-  && /^https?:$/.test(location.protocol));   // http(s) only → live on Pages, silent on file://
+  && CFG.url.indexOf('YOUR_') === -1 && CFG.token.indexOf('YOUR_') === -1);
 const syncEnabled = () => syncConfigured() && navigator.onLine;
 
 function syncErr(e){
@@ -836,39 +866,47 @@ git commit -m "test(sync): expired token shows a visible non-blocking notice"
 
 ---
 
-## Task 9: Rebuild the bundle and verify the runtime surface gate
+## Task 9: Disable sync in the offline bundle
 
-The deployed artifact is the single-file bundle. Because `syncConfigured()` requires an `http(s)` origin (Task 2), the bundle needs **no** build-time disable — it self-gates: live over `https:` (Pages), silent over `file://`. This task rebuilds the bundle from the now-sync-aware source and verifies both behaviors. **The bundler (`build-single-file.js`) is not modified.**
+The offline single-file bundle (`the-muses-odyssey.html`) runs from `file://`, where sync can't and shouldn't run. Hard-disable it by injecting `window.LOOM_SYNC = null` ahead of the app so `syncConfigured()` is false (no History button, no fetches).
 
 **Files:**
-- (No source edits — runs `build-single-file.js`; produces `the-muses-odyssey.html`.)
+- Modify: `build-single-file.js`
 
 **Interfaces:**
-- Consumes: the `syncConfigured()` protocol gate + the whole sync module (Task 2), `showHistory` (Task 7).
+- Consumes: the `window.LOOM_SYNC` seam (Task 2).
 
-- [ ] **Step 1: Confirm the bundler's anchors still match**
+- [ ] **Step 1: Read the bundler**
 
-The sync module was inserted between `const label = …` and `function boot(){`, and never touched the three strings the bundler keys on: `<script src="../data/manifest.js"></script>`, `let pending = LOAD.length;` … `document.head.appendChild(s);\n});`, and the `<title>` line. Rebuild:
+Run: `sed -n '1,200p' build-single-file.js` (or open it). Locate where it assembles the inlined HTML and where it already injects the localStorage shim (per prior work). The injection point is immediately **before** the main app `<script>` block.
+
+- [ ] **Step 2: Inject the disable line**
+
+At that same injection point (right where the localStorage shim is added), also emit:
+
+```js
+// Offline bundle: hard-disable cross-device sync (no network on file://).
+html = html.replace(
+  '<script src="../data/manifest.js"></script>',
+  '<script>window.LOOM_SYNC = null;</script>\n<script src="../data/manifest.js"></script>'
+);
+```
+
+Adapt the exact anchor string to however this bundler currently transforms the `<head>`/script tags — the requirement is only that `window.LOOM_SYNC = null` executes **before** the app script runs. If the bundler already rewrites the manifest `<script>` (because it inlines data), inject the `LOOM_SYNC` line just before that rewritten block instead.
+
+- [ ] **Step 3: Rebuild and verify**
 
 Run: `node build-single-file.js`
-Expected output ends with `Leftover ../data/ refs: 0 (must be 0)` and `Books missing from output: none`. (A thrown "index.html shape changed" means an anchor moved — reconcile before continuing.)
-
-- [ ] **Step 2: Verify sync is SILENT over file://**
-
-Open the produced `the-muses-odyssey.html` directly (double-click / `file://`). Confirm:
+Then open the produced `the-muses-odyssey.html` directly (double-click / `file://`). Confirm:
 - the app renders and a quiz completes with best-score persistence,
-- **no** Chronos button anywhere (protocol gate → `syncConfigured()` false),
-- the console shows **no** `[sync]` warnings and **no** `fetch` attempts to Supabase.
+- **no** Chronos button anywhere,
+- the console shows **no** `[sync]` warnings and **no** failed `fetch` to Supabase.
 
-- [ ] **Step 3: Verify sync is LIVE over http:// (same bundle)**
-
-Serve the bundle over http and open it: `python3 -m http.server 3001` then visit `http://localhost:3001/the-muses-odyssey.html`. With real creds not yet inlined (still `YOUR_*`), `syncConfigured()` is still false — so instead confirm the *gate itself* flips on origin: in the console, `syncConfigured()` returns `false` here only because creds are placeholders, but `/^https?:$/.test(location.protocol)` returns `true` (vs `false` on the `file://` open in Step 2). This proves the protocol arm of the gate. (Full live sync is exercised in Task 10 after real creds.)
-
-- [ ] **Step 4: Commit the rebuilt bundle**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add the-muses-odyssey.html
-git commit -m "build(sync): rebuild single-file bundle with the sync-aware source"
+git add build-single-file.js the-muses-odyssey.html
+git commit -m "feat(sync): disable sync in the offline bundle via window.LOOM_SYNC=null"
 ```
 
 ---
@@ -900,18 +938,14 @@ const CFG = (typeof window.LOOM_SYNC !== 'undefined') ? window.LOOM_SYNC : {
 Run: `npx playwright test`
 Expected: PASS — the tests inject `window.LOOM_SYNC`, so they ignore the real inline creds.
 
-- [ ] **Step 3: Rebuild the bundle and publish it as the Pages root**
-
-The live site is the repo-root `index.html` (the bundle Pages serves). Regenerate it from the now-credentialed source and copy it into place:
+- [ ] **Step 3: Deploy**
 
 ```bash
-node build-single-file.js          # source app/index.html → the-muses-odyssey.html (creds inlined)
-cp the-muses-odyssey.html index.html   # index.html is what GitHub Pages serves
-git add app/index.html the-muses-odyssey.html index.html
-git commit -m "chore(sync): wire live Supabase credentials and rebuild Pages bundle"
-git push origin feat/quiz-history-sync
+git add app/index.html
+git commit -m "chore(sync): wire live Supabase credentials"
+git push origin main
 ```
-Open a PR to `main` (or merge per your workflow); Pages publishes `https://mrojas54.github.io/muses-odyssey/` from `main`'s root `index.html`. Because the deployed page is served over `https:`, the protocol gate lets sync run live there.
+Wait for the GitHub Pages build to publish `https://mrojas54.github.io/muses-odyssey/`.
 
 - [ ] **Step 4: Manual verification (from spec §7)**
 
@@ -944,4 +978,4 @@ Add a calendar reminder for **~day 85** from the token's mint date (Task 1): reg
 
 **Type consistency:** `pushSitting(summary, rawRows)` — `summary` keys (`book_id/score/total/breakdown/by_book?`) and `rawRows` keys (`book_id/qi/kind/chosen/is_correct`) match Task 1's columns and the call sites in Tasks 3–4. `reveal(...,rawRows)` and `examReveal(...,rawRows)` signatures match their `buildQuiz`/`buildExam` callers. `pushProgress(bookId,total)` matches both call sites. `syncPull`/`fetchSummaries` names match boot/Chronos. ✓
 
-**Deployment reconciliation (discovered at execution):** The live `mrojas54/muses-odyssey` repo tracked only the built single-file `index.html` — Pages serves the *bundle*, which is also the `file://` offline artifact. The plan's original "Pages = multi-file app, bundle = separate" split didn't match reality. Resolved (user decision) with a **runtime surface gate**: `syncConfigured()` requires an `http(s)` origin, so one bundle is live on Pages and silent offline. This honors spec §3's "offline bundle needs zero changes" *literally* — `build-single-file.js` is unmodified (Task 9 only rebuilds + verifies). The full source tree was imported into the repo (previously untracked) so this is genuinely one repo.
+**Deviation note:** Spec §3 says the offline bundle needs "zero changes." Because `CFG` carries live inline defaults (required for Pages), the bundle needs one line — `window.LOOM_SYNC = null` — injected by the **bundler** (Task 9), not the app. The app source is unchanged for offline; the spirit ("offline no-ops") holds.

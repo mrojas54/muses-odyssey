@@ -213,6 +213,24 @@ const bestScore = id => { const v=localStorage.getItem('loom.best.'+id); return 
 const saveScore = (id,s) => { const b=bestScore(id); if(b==null||s>b) localStorage.setItem('loom.best.'+id, s); };
 const priorMiss = id => { try{ return JSON.parse(localStorage.getItem('loom.miss.'+id)||'[]'); }catch(e){ return []; } };
 const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringify(arr));
+
+/* ---- authored progress seed ----
+   No cross-device sync (that work is deferred — see
+   docs/superpowers/plans/2026-07-06-future-user-auth-fastapi.md). Instead we bake
+   baseline progress into the app so books already read + quizzed show as done on
+   every device. Each key is written ONLY if unset, so a real score you earn later
+   is never overwritten, and books added here later still seed on their next load.
+   Maintain by hand, deep-dive style: finish a book, add `id: <omen count>` below
+   and redeploy. Score = the book's omen count (a perfect sitting). */
+(function seedProgress(){
+  const SEED = { 'iliad-01':6, 'iliad-02':6, 'iliad-03':6 };   // id → best score (= perfect)
+  try {
+    for(const id in SEED){
+      if(localStorage.getItem('loom.read.'+id)==null) localStorage.setItem('loom.read.'+id,'1');
+      if(localStorage.getItem('loom.best.'+id)==null) localStorage.setItem('loom.best.'+id, String(SEED[id]));
+    }
+  } catch(e){ /* locked-down origin (raw file://): harness shim covers the bundle */ }
+})();
 const clearMiss = (id,qi) => saveMiss(id, priorMiss(id).filter(x=>x!==qi));
 function allMisses(){
   const out=[];
