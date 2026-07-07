@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-01"] = {
     }
   },
 
+  recap: [
+    "Before the song begins: a golden apple thrown <b>for the fairest</b>, and three goddesses for the Trojan prince <b>Paris</b> to judge. He chose <b>Aphrodite</b>, and his reward was <b>Helen</b> — loveliest of mortal women, and already the wife of <b>Menelaus</b> of Sparta.",
+    "Paris carried her across the sea to Troy. So the kings of Greece, oath-bound to defend that marriage, launched a thousand ships behind <b>Agamemnon</b> — Menelaus' brother and high king. Nine years they have besieged Troy's walls and cannot break them. The tenth year opens here."
+  ],
+
   scene: [
     "The Greek host has camped nine years on the windy plain before Troy, ships beached at their backs, the city's walls still unbroken. The war has settled into a grinding routine of raids and plunder — and the plunder is where this story starts.",
     "Two captive women, taken in those raids, become the hinge of everything: <i>Chryseis</i>, awarded to <span class='who'>Agamemnon</span> the high king, and <i>Briseis</i>, awarded to <span class='who'>Achilles</span> the greatest fighter. The poem opens not on a battlefield but on a quarrel between the two most powerful Greeks over honor — and the god who makes them pay for it."

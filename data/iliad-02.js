@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-02"] = {
     }
   },
 
+  recap: [
+    "The tenth year began in wrath. <b>Apollo</b>'s plague scourged the Greek camp — vengeance for a priest whose daughter <b>Agamemnon</b> had refused to ransom. Forced at last to give her back, the king seized <b>Achilles</b>' own war-prize, <b>Briseis</b>, in her place.",
+    "So the best of the Achaeans withdrew to his ships in fury and would fight no more. His mother <b>Thetis</b> knelt to <b>Zeus</b> and won his silent nod: while her son sits idle, the Greeks must bleed for the insult. That promise is about to move."
+  ],
+
   scene: [
     "Night lies over the long Greek camp, the beached ships drawn up on the windy plain of Troy. The quarrel of Book 1 has settled into a dangerous quiet — <i>Achilles sulks in his tent by the sea, his Myrmidons idle beside him.</i> The army does not yet know it has lost its best man.",
     "On Olympus the gods and mounted men sleep. <i>Only Zeus lies awake</i>, turning over how to honor the promise he gave Thetis: to make the Greeks feel the absence of Achilles. His weapon will not be thunder. It will be a lie, whispered into a sleeping king's ear."

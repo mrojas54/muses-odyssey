@@ -73,6 +73,9 @@
   .scene{background:linear-gradient(160deg, #2a2030 0%, #1f2a33 100%); color:#e9dcc6; border-radius:16px; padding:24px 22px; margin-bottom:30px; font-size:16px;}
   .scene .lbl{color:#d9b366; font-size:12px; letter-spacing:3px; text-transform:uppercase; text-align:center; display:block; margin-bottom:12px;}
   .scene p{margin:0 0 12px;} .scene p:last-child{margin-bottom:0;} .scene i{color:#f0e2c8;}
+  .recap{background:var(--parch2); border:1px solid var(--line); border-left:4px solid var(--wine); border-radius:12px; padding:18px 20px; margin-bottom:26px; font-size:15px; font-style:italic; color:var(--soft);}
+  .recap .lbl{color:var(--wine); font-size:11px; letter-spacing:3px; text-transform:uppercase; text-align:center; display:block; margin-bottom:10px; font-style:normal;}
+  .recap p{margin:0 0 10px;} .recap p:last-child{margin-bottom:0;} .recap b{color:var(--ink); font-style:normal; font-weight:normal;}
   .invoke{background:var(--wine); color:#fbeede; border-radius:16px; padding:22px; margin-bottom:30px; text-align:center; font-style:italic; font-size:17px;}
   .invoke .src{display:block; font-style:normal; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#e8c79a; margin-top:12px;}
   .movement{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 20px; margin-bottom:18px; box-shadow:0 2px 10px #00000010;}
@@ -1592,7 +1595,7 @@ const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringif
    Maintain by hand, deep-dive style: finish a book, add `id: <omen count>` below
    and redeploy. Score = the book's omen count (a perfect sitting). */
 (function seedProgress(){
-  const SEED = { 'iliad-01':6, 'iliad-02':6, 'iliad-03':6 };   // id → best score (= perfect)
+  const SEED = { 'iliad-01':6, 'iliad-02':6, 'iliad-03':6, 'iliad-04':6 };   // id → best score (= perfect)
   try {
     for(const id in SEED){
       if(localStorage.getItem('loom.read.'+id)==null) localStorage.setItem('loom.read.'+id,'1');
@@ -1736,16 +1739,17 @@ function buildReview(items){
       `<div class="qhead"><span class="qkind ${ki.cls}">${ki.label}</span></div>`+
       `<div class="qt">${item.q}</div>`;
     const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
-    item.opts.forEach((text,oi)=>{
+    const view=shuffleOpts(item);
+    view.opts.forEach((text,oi)=>{
       const b=document.createElement('button'); b.className='opt'; b.textContent=text;
       b.onclick=()=>{
         card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
         const btns=card.querySelectorAll('.opt');
-        if(oi===item.correct){
+        if(oi===view.correct){
           b.classList.add('correct'); clearMiss(id,qi); mended++;
           card.classList.add('cleared');
         } else {
-          b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+          b.classList.add('wrong'); btns[view.correct].classList.add('correct');
         }
         truth.classList.add('show'); answered++;
         document.getElementById('rtally').textContent =
@@ -1855,6 +1859,16 @@ function renderBody(d){
 }
 
 /* ---- quiz ---- */
+/* The data pins the correct answer to a fixed slot (historically almost always
+   index 1 — the second option), so a reader could pass by always tapping the
+   second choice. Shuffle each question's options at render time and remap the
+   correct index. Safe for persistence: misses/scores are keyed by question index
+   (qi), never by option position. */
+function shuffleOpts(item){
+  const idx=item.opts.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  return { opts: idx.map(i=>item.opts[i]), correct: idx.indexOf(item.correct) };
+}
 function buildQuiz(Q){
   const quiz=document.getElementById('quiz');
   const pm = priorMiss(current);
@@ -1874,13 +1888,14 @@ function buildQuiz(Q){
       `${missedBefore?'<span class="missflag">↺ missed last time</span>':''}</div>`+
       `<div class="qt">${item.q}</div>`;
     const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
-    item.opts.forEach((text,oi)=>{
+    const view=shuffleOpts(item);
+    view.opts.forEach((text,oi)=>{
       const b=document.createElement('button'); b.className='opt'; b.textContent=text;
       b.onclick=()=>{
         card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
         const btns=card.querySelectorAll('.opt');
-        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; }
-        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct'); missArr.push(qi); }
+        if(oi===view.correct){ b.classList.add('correct'); score++; stats[k].c++; }
+        else{ b.classList.add('wrong'); btns[view.correct].classList.add('correct'); missArr.push(qi); }
         truth.classList.add('show'); answered++;
         document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
         if(answered===Q.length) reveal(score, Q.length, stats, missArr);
@@ -1966,13 +1981,14 @@ function buildExam(items){
       `<span class="qkind ${ki.cls}">${ki.label}</span></div>`+
       `<div class="qt">${item.q}</div>`;
     const truth=document.createElement('div'); truth.className='truth';
-    item.opts.forEach((text,oi)=>{
+    const view=shuffleOpts(item);
+    view.opts.forEach((text,oi)=>{
       const b=document.createElement('button'); b.className='opt'; b.textContent=text;
       b.onclick=()=>{
         card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
         const btns=card.querySelectorAll('.opt');
-        if(oi===item.correct){ b.classList.add('correct'); score++; stats[k].c++; byBook[srcId].c++; clearMiss(srcId,qi); }
-        else{ b.classList.add('wrong'); btns[item.correct].classList.add('correct');
+        if(oi===view.correct){ b.classList.add('correct'); score++; stats[k].c++; byBook[srcId].c++; clearMiss(srcId,qi); }
+        else{ b.classList.add('wrong'); btns[view.correct].classList.add('correct');
               saveMiss(srcId, Array.from(new Set([...priorMiss(srcId), qi])).sort((a,b)=>a-b)); }
         /* source book stays hidden until answered, then revealed with the truth */
         truth.innerHTML = item.truth + `<div class="examsrc">— ${label(srcId)}${item.n?` · ${item.n}`:''}</div>`;

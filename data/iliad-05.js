@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-05"] = {
     }
   },
 
+  recap: [
+    "<b>Achilles</b> still nurses his wrath by the ships, and <b>Zeus</b>'s promise to <b>Thetis</b> still hangs over the Greeks. A sworn duel should have ended everything — <b>Paris</b> against <b>Menelaus</b> for <b>Helen</b> — but <b>Aphrodite</b> stole her man away and left the oaths unfulfilled.",
+    "Then the gods voted for more war over their wine. The archer <b>Pandarus</b>, goaded by <b>Athena</b>, loosed an arrow at Menelaus and murdered the truce — and the plain drank its first blood. Into that broken field the armies close again."
+  ],
+
   scene: [
     "The truce is dead and the first blood of Book 4 is drying on the plain. Now Homer does something new: he narrows the whole war down to one man. This is an <i>aristeia</i> — a single hero's day of supreme excellence — and its subject is <span class='who'>Diomedes</span>, son of Tydeus, the young captain who swallowed <span class='who'>Agamemnon</span>'s insult in silence one book ago.",
     "<span class='god'>Athena</span> pours fire into him and turns him loose. What follows is the poem's most dangerous experiment: a mortal raised so high by a god that he stops distinguishing gods from men — and is <i>told</i> not to, except for one. Before the day is done, Diomedes will drive his spear into the flesh of <span class='god'>Aphrodite</span> and, with Athena herself at the reins, into the belly of <span class='god'>Ares</span>. The book asks the question the whole <i>Iliad</i> circles: how close to a god can a man come before the gods slam the door?"

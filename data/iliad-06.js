@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-06"] = {
     }
   },
 
+  recap: [
+    "The war the gods reopened runs hot. A sworn duel for <b>Helen</b> dissolved when <b>Aphrodite</b> spirited <b>Paris</b> away, and then <b>Pandarus</b>' treacherous arrow broke the truce that should have ended it all — first blood on the plain.",
+    "Into that carnage <b>Athena</b> lit <b>Diomedes</b> to a day of terrible glory: he tore through the Trojan ranks, wounded Aphrodite's very hand, and drove even <b>Ares</b> bleeding from the field. All the while <b>Achilles</b> sits apart in his wrath and <b>Zeus</b>'s nod to <b>Thetis</b> waits its hour. Now, at the height of the fighting, one Trojan turns back toward the city."
+  ],
+
   scene: [
     "The gods have withdrawn — <span class='god'>Ares</span> nursing his belly-wound, <span class='god'>Aphrodite</span> her wrist — and for the first time the battle is left to men alone. The Trojans are giving ground. And Homer, having shown us the war at its most god-touched in Book 5, now does the opposite: he takes us <i>off</i> the plain and inside the walls, into the houses and the family the whole ten-year siege is about.",
     "This is the book of what is at stake. Two enemies meet in the no-man's-land and, instead of killing, trade armor over an inherited friendship. <span class='who'>Hector</span> walks back through his own doomed city — past his mother, past his brother's bedroom, to his wife and infant son at the gate. He already knows, in his heart, how it all ends. He goes back to the fighting anyway. Book 6 is where the <i>Iliad</i> earns its grief."

@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-03"] = {
     }
   },
 
+  recap: [
+    "<b>Achilles</b>, robbed of <b>Briseis</b> by <b>Agamemnon</b>, has withdrawn to his ships in wrath — and <b>Zeus</b> has nodded to <b>Thetis</b> that the Greeks will suffer for it.",
+    "That nod fell as a lying <b>Dream</b> on Agamemnon — <b>Troy will fall today</b>. His clumsy test of the army's heart nearly sailed the whole host home before <b>Odysseus</b> and the scepter drove the rout back. Then the armies were numbered ship by ship and marched onto the plain, where they now stand face to face for the first time."
+  ],
+
   scene: [
     "The mustered hosts of Book 2 finally meet. The Trojans pour forward <i>shrieking like cranes</i> that flee the winter down to the streams of Ocean; the Greeks come on in a grim, deliberate silence, dust rising thick enough to hide a man at arm's length. Two armies, nine years in the making, about to touch.",
     "And then — out of the Trojan front struts the man who started it all. <span class='who'>Paris</span>, a panther-skin slung over his shoulder, bow and blade and two bronze-headed spears, swaggering down the line to challenge the best of the Argives. For one strange morning the whole vast war narrows to a single quarrel between two husbands of one woman. The plain holds its breath."

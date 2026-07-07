@@ -14,6 +14,11 @@ window.LOOM_DATA["iliad-04"] = {
     }
   },
 
+  recap: [
+    "The plague, the quarrel, the withdrawal: <b>Apollo</b>'s arrows drove <b>Agamemnon</b> to yield one girl but seize <b>Achilles</b>' prize <b>Briseis</b>, and Achilles drew back to his ships while <b>Thetis</b> won <b>Zeus</b>'s nod that the Greeks should bleed.",
+    "That nod became a lying Dream; the king's reckless test of the army nearly sailed them home before <b>Odysseus</b> turned it back and the hosts were counted. Then, on the plain, a duel — <b>Paris</b> against <b>Menelaus</b> for <b>Helen</b> and the whole war — until <b>Aphrodite</b> snatched her favorite off the field, the oath left unsettled and the truce hanging by a single thread."
+  ],
+
   scene: [
     "Down on the plain, nothing has moved since Book 3 broke off. <span class='who'>Menelaus</span> still prowls the dueling-ground for an enemy who vanished into mist; <span class='who'>Agamemnon</span> has claimed the victory out loud; two armies stand sworn to a truce that is neither honored nor broken. The war is balanced on the edge of ending.",
     "And so Homer lifts the camera all the way up. On Olympus the gods are at their cups, and <span class='god'>Zeus</span> — needling his wife on purpose — wonders aloud: should we let the fighting end here? Menelaus has won; let Helen sail home and Priam's city stand. What follows is one of the coldest scenes in the poem: the survival of Troy haggled over like a market price, and a goddess sent down to make sure the peace dies first."
