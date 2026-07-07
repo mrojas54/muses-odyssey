@@ -14,3 +14,8 @@ the-muses-odyssey.html
 # AGENTS.md, the single source of truth). Use `git add -f` for a real nested one.
 CLAUDE.md
 !/CLAUDE.md
+
+# Claude Code harness config (machine/user-local, not project source).
+# Keep .claude/commands/ tracked; ignore only the settings files.
+.claude/settings.json
+.claude/settings.local.json
