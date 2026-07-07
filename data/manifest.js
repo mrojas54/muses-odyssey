@@ -5,5 +5,9 @@ window.LOOM_BOOKS = [
   "iliad-03",
   "iliad-04",
   "iliad-05",
-  "iliad-06"
+  "iliad-06",
+  "iliad-07",
+  "iliad-08",
+  "iliad-09",
+  "iliad-10"
 ];
