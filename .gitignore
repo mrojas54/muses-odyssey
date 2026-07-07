@@ -8,3 +8,9 @@ playwright-report/
 
 # build artifact (regenerate with build-single-file.js; index.html is the committed deploy copy)
 the-muses-odyssey.html
+
+# claude-mem drops empty per-directory CLAUDE.md stubs that collide with the real
+# config filename. Ignore all nested CLAUDE.md; keep the root one (symlink ->
+# AGENTS.md, the single source of truth). Use `git add -f` for a real nested one.
+CLAUDE.md
+!/CLAUDE.md
