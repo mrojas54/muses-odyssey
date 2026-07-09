@@ -87,6 +87,13 @@
   .terms .gk{color:var(--wine); font-style:italic; font-weight:bold;} .terms .df{color:var(--soft); font-size:15px;}
   .c{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:15px 18px; margin-bottom:12px; box-shadow:0 2px 9px #00000010;}
   .c .nm{font-size:18px; margin:0;} .c .ep{font-style:italic; font-size:13.5px; margin:1px 0 8px; color:var(--wine);} .c .ep.god{color:var(--sky);}
+  .c .ep.has-variants{margin-bottom:2px;}
+  .c .eplist{margin:0 0 8px; padding:0;}
+  .c .epvar{display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px; font-size:13px; line-height:1.7;}
+  .c .epvar::before{content:"·"; color:var(--gold); margin-right:2px;}
+  .c .epvar .ept{font-style:italic; color:var(--wine);}
+  .c .eplist.god .epvar .ept{color:var(--sky);}
+  .c .epvar .epbooks{font-size:11px; letter-spacing:1.4px; color:var(--gold); white-space:nowrap;}
   .c .rl{margin:0; font-size:15px;}
   .tag{display:inline-block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--olive); border:1px solid var(--line); border-radius:20px; padding:2px 9px; margin-top:9px;}
   /* roster: the books a player walks through */
@@ -355,13 +362,18 @@ function collectCast(){
         const bucket = isGod ? "Gods & Powers" : "Mortals";
         const key = bucket + '|' + c.name;
         if(!index[key]){
-          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', tag:c.tag||'', god:isGod, books:[] };
+          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', tag:c.tag||'', god:isGod, books:[], epithets:[] };
           groups[bucket].push(index[key]);
         }
         const card = index[key];
         if(card.books.indexOf(id)<0) card.books.push(id);
         if(!card.epithet && c.epithet) card.epithet = c.epithet;   // fill blanks from a later book
         if(!card.role && c.role) card.role = c.role;
+        if(c.epithet){                                             // an epithet may shift book to book
+          let e = card.epithets.find(x=> x.ep === c.epithet);
+          if(!e){ e = { ep:c.epithet, books:[] }; card.epithets.push(e); }
+          if(e.books.indexOf(id)<0) e.books.push(id);
+        }
       });
     });
   });
@@ -401,11 +413,42 @@ function showRoster(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+/* Split a character's epithets into the part every book agrees on and the parts
+   that shift. Hector is "breaker of horses" throughout, but "prince of Troy"
+   until Book 6 and "bulwark of Troy" after it. Returns null when nothing shifts. */
+function foldEpithets(eps){
+  if(!eps || eps.length < 2) return null;
+  const segs = eps.map(e=> e.ep.split(/,\s+/));
+  const common = [];
+  for(let i=0; i<segs[0].length; i++){
+    const s = segs[0][i];
+    if(segs.every(a=> a[i] === s)) common.push(s); else break;
+  }
+  // one epithet may be a prefix of another; give back segments until no tail is empty
+  while(common.length && segs.some(a=> a.length === common.length)) common.pop();
+  return {
+    common: common.join(', '),
+    variants: eps.map((e,i)=> ({ tail: segs[i].slice(common.length).join(', '), books:e.books }))
+  };
+}
+
 /* one player card; `c` is a folded cast entry from collectCast() */
 function castCard(c){
   const godcls = c.god ? ' god' : '';
   const books = c.books.map(id=>{ const p=planOf(id); return `<button class="lk" onclick="showBook('${id}')">Book ${p?p.n:id}</button>`; }).join('');
-  return `<div class="c"><h4 class="nm">${c.name}</h4><div class="ep${godcls}">${c.epithet}</div>`+
+  const fold = foldEpithets(c.epithets);
+  let ep;
+  if(!fold){
+    ep = `<div class="ep${godcls}">${c.epithet}</div>`;
+  } else {
+    const rows = fold.variants.map(v=>{
+      const ns = v.books.map(id=>{ const p=planOf(id); return p?p.n:id; }).join(' · ');
+      return `<div class="epvar"><span class="ept">${v.tail}</span><span class="epbooks">${ns}</span></div>`;
+    }).join('');
+    ep = (fold.common ? `<div class="ep has-variants${godcls}">${fold.common}</div>` : '')
+       + `<div class="eplist${godcls}">${rows}</div>`;
+  }
+  return `<div class="c"><h4 class="nm">${c.name}</h4>${ep}`+
          `<p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}`+
          `<div class="seen">Walks through</div><div class="castbooks">${books}</div></div>`;
 }

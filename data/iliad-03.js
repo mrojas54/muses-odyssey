@@ -108,8 +108,8 @@ window.LOOM_DATA["iliad-03"] = {
 
   characters: {
     "Mortals": [
-      { name: "Paris", epithet: "Alexandros, prince of Troy, the pretty one", role: "Challenges the Greeks, then recoils from Menelaus; shamed by Hector, offers single combat for Helen. Loses the duel and is whisked from death by Aphrodite to his own bedchamber — and Helen's bed.", tag: "The cause, who flinches" },
-      { name: "Menelaus", epithet: "lord of the war-cry, the wronged husband", role: "Leaps to face Paris like a lion. Wins every exchange of the duel — until his sword shatters and the goddess steals his kill. Ends the book hunting an enemy who has vanished.", tag: "The robbed victor" },
+      { name: "Paris", epithet: "Alexander, prince of Troy, the pretty one", role: "Challenges the Greeks, then recoils from Menelaus; shamed by Hector, offers single combat for Helen. Loses the duel and is whisked from death by Aphrodite to his own bedchamber — and Helen's bed.", tag: "The cause, who flinches" },
+      { name: "Menelaus", epithet: "lord of the war cry, the wronged husband", role: "Leaps to face Paris like a lion. Wins every exchange of the duel — until his sword shatters and the goddess steals his kill. Ends the book hunting an enemy who has vanished.", tag: "The robbed victor" },
       { name: "Hector", epithet: "breaker of horses, prince of Troy", role: "Scorns his brother's cowardice, brokers the terms of the duel, and steps unarmed between the armies to set it in motion. Troy's conscience to Paris's shame.", tag: "The brother who carries it" },
       { name: "Helen", epithet: "of the white arms, born of Zeus", role: "Weaves the war into a tapestry; called to the wall, she names the Greek captains for Priam, mourning the brothers she cannot find. Refuses, then yields, to Aphrodite — and to Paris.", tag: "The woven cause" },
       { name: "Priam", epithet: "old king of Troy", role: "Receives Helen on the wall without blame, swears the great oath over the lambs — then cannot bear to watch his son fight, and rides back to the city.", tag: "The father who looks away" },
