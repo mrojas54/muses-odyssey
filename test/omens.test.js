@@ -62,6 +62,17 @@ test('isKinshipEpithet flags the possessive form "Achilles\' foster-father"', ()
   assert.strictEqual(omens.isKinshipEpithet("goddess of desire, Paris's patron"), false);
 });
 
+test('isKinshipEpithet matches a possessive written with a typographic apostrophe', () => {
+  // The corpus uses straight quotes today, but the app's prose voice is typographic.
+  // The character class must accept U+2019 as well as U+0027.
+  const curly = 'the old charioteer, Achilles’ foster-father';
+  assert.strictEqual(omens.isKinshipEpithet(curly), true);
+  const curlyS = 'Peleus’s son';
+  assert.strictEqual(omens.isKinshipEpithet(curlyS), true);
+  // A typographic possessive naming a NON-kinsman still passes through.
+  assert.strictEqual(omens.isKinshipEpithet('goddess of desire, Paris’s patron'), false);
+});
+
 test('bandOf routes by group name and by the god flag', () => {
   assert.strictEqual(omens.bandOf('Gods & Powers', { name: 'Athena' }), 'gods');
   assert.strictEqual(omens.bandOf('Mortals', { name: 'Ajax' }), 'mortals');

@@ -14,12 +14,13 @@
      Two constructions appear in the corpus:
        "grandson of Bellerophon"        — kinship word, then "of", then a name
        "Achilles' foster-father"        — a possessive name, then a kinship word
+                                          (straight ' and typographic ' both match)
      Note "of the Greek host" must NOT match: no person is named. Nor must
      "Paris's patron" — possessive, but "patron" is no kin. */
   const KIN = "(?:foster-|step-|half-|grand|great-grand)?(?:son|daughter|father|mother|brother|sister)|wife|husband";
   const KINSHIP = new RegExp(
     "\\b(?:" + KIN + ")\\s+of\\s+[A-Z]" +
-    "|[A-Z][\\p{L}]*(?:['']s|[''])\\s+(?:" + KIN + ")",
+    "|[A-Z][\\p{L}]*(?:['’']s|['’'])\\s+(?:" + KIN + ")",
     "u"
   );
   const isKinshipEpithet = ep => KINSHIP.test(ep || '');
