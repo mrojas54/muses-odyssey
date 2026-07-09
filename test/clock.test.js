@@ -1,3 +1,5 @@
+process.env.TZ = 'America/New_York';   // DST tests below depend on US transition dates
+
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
