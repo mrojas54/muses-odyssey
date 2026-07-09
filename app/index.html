@@ -363,16 +363,15 @@ function collectCast(){
         const bucket = isGod ? "Gods & Powers" : "Mortals";
         const key = bucket + '|' + c.name;
         if(!index[key]){
-          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', roleBook:'', tag:c.tag||'', god:isGod, books:[], epithets:[] };
+          index[key] = { name:c.name, epithet:c.epithet||'', god:isGod, books:[], epithets:[], notes:[] };
           groups[bucket].push(index[key]);
         }
         const card = index[key];
         if(card.books.indexOf(id)<0) card.books.push(id);
-        // ORDER runs ascending, so the last book to name them wins: a card should
-        // show who a character has become, not who they were when first met.
         if(c.epithet) card.epithet = c.epithet;
-        if(c.role){ card.role = c.role; card.roleBook = id; }
-        if(c.tag) card.tag = c.tag;
+        // Keep every book's note; castCard picks one against the reader's progress.
+        // ORDER runs ascending, so notes[] ends up in book order.
+        if(c.role || c.tag) card.notes.push({ book:id, role:c.role||'', tag:c.tag||'' });
         if(c.epithet){                                             // an epithet may shift book to book
           let e = card.epithets.find(x=> x.ep === c.epithet);
           if(!e){ e = { ep:c.epithet, books:[] }; card.epithets.push(e); }
@@ -452,10 +451,15 @@ function castCard(c){
     ep = (fold.common ? `<div class="ep has-variants${godcls}">${fold.common}</div>` : '')
        + `<div class="eplist${godcls}">${rows}</div>`;
   }
-  const rb = c.roleBook && planOf(c.roleBook);
-  const from = (rb && c.books.length > 1) ? `<div class="rlfrom">as of Book ${rb.n}</div>` : '';
+  // Meet the character where the reader is: their furthest book that has been read.
+  // Before the reader reaches any of their books, show the earliest — never spoil forward.
+  const notes = c.notes || [];
+  const read = notes.filter(n=> isRead(n.book));
+  const note = (read.length ? read[read.length-1] : notes[0]) || { book:'', role:'', tag:'' };
+  const nb = note.book && planOf(note.book);
+  const from = (nb && c.books.length > 1) ? `<div class="rlfrom">as of Book ${nb.n}</div>` : '';
   return `<div class="c"><h4 class="nm">${c.name}</h4>${ep}`+
-         `${from}<p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}`+
+         `${from}<p class="rl">${note.role}</p>${note.tag?`<span class="tag">${note.tag}</span>`:''}`+
          `<div class="seen">Walks through</div><div class="castbooks">${books}</div></div>`;
 }
 
