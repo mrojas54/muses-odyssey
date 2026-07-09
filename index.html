@@ -95,6 +95,12 @@
   .c .nm{font-size:18px; margin:0;} .c .ep{font-style:italic; font-size:13.5px; margin:1px 0 8px; color:var(--wine);} .c .ep.god{color:var(--sky);}
   .c .rl{margin:0; font-size:15px;}
   .tag{display:inline-block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--olive); border:1px solid var(--line); border-radius:20px; padding:2px 9px; margin-top:9px;}
+  /* roster: the books a player walks through */
+  .c .seen{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin:12px 0 6px;}
+  .c .castbooks{display:flex; flex-wrap:wrap; gap:7px;}
+  .c .castbooks .lk{font:inherit; font-size:12.5px; background:var(--parch); border:1px solid var(--line); color:var(--wine); border-radius:20px; padding:5px 12px; cursor:pointer; transition:.15s;}
+  .c .castbooks .lk:hover{border-color:var(--gold);}
+  .c .castbooks .lk:active{transform:translateY(1px);}
 
   /* threads */
   .thread{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:14px; box-shadow:0 2px 9px #00000010;}
@@ -1246,6 +1252,7 @@ window.LOOM_DATA["iliad-05"] = {
       { name: "Pandarus", epithet: "son of Lycaon, the archer of Lycia", role: "The truce-breaker of Book 4, back for a last arrow. He wounds Diomedes, boasts too soon, then teams with Aeneas — and dies with the young hero's spear through his face. His arc closes where his treachery aimed it.", tag: "The bow, silenced" },
       { name: "Aeneas", epithet: "son of Anchises and the goddess Aphrodite", role: "Yokes Pandarus' bow to his chariot against Diomedes, and is felled by a stone that shatters his hip. Rescued first by his mother, then by Apollo, and healed in Apollo's temple — the goddess-born son the gods will not let die.", tag: "The rescued son" },
       { name: "Sthenelus", epithet: "son of Capaneus, Diomedes' companion", role: "Draws the arrow from Diomedes' shoulder so the aristeia can begin, and captures the horses of the fallen. The steady friend at the hero's side.", tag: "The hand that drew the shaft" },
+      { name: "Hector", epithet: "breaker of horses, prince of Troy", role: "Holds the Trojan line while the aristeia burns through it — rallied by Ares at his shoulder, rebuked by Sarpedon for leaving the allies to do his fighting. He kills Menesthes and Anchialus, and Diomedes, seeing the war-god beside him, gives ground. Not yet the book's subject; already the man the Greeks measure themselves against.", tag: "The god at his shoulder" },
       { name: "Sarpedon", epithet: "son of Zeus, captain of Lycia", role: "Rebukes Hector for hiding behind his allies, then kills Tlepolemus and takes a spear through the thigh — dragged off half-alive. Even a son of Zeus bleeds; the poem is keeping his account.", tag: "Zeus's wounded son" },
       { name: "Tlepolemus", epithet: "son of Heracles, lord of Rhodes", role: "Faces Sarpedon in a trade of spears and loses his life for a wound. A grandson of Zeus killed by a son of Zeus — divine blood on both sides of one cast.", tag: "The fallen Heraclid" }
     ],
@@ -2573,11 +2580,13 @@ function showHome(){
   const examCount = ORDER.filter(authored).reduce((s,id)=> s + ((window.LOOM_DATA[id].quiz||[]).length), 0);
   let h='';
   const missCount = allMisses().length;
+  const castN = castCount();
   h += `<div class="progress">${authoredAll} of 48 books on the loom · ${readAll} read</div>`;
   h += `<div class="progbar"><i style="width:${(authoredAll/48*100).toFixed(1)}%"></i></div>`;
-  if(examCount || threadCount || missCount){
+  if(examCount || threadCount || missCount || castN){
     h += `<div class="homeacts">`;
     if(examCount)   h += `<button onclick="showExam()">◈ The Grand Examination (${examCount}) →</button>`;
+    if(castN)       h += `<button onclick="showRoster()">☙ The players (${castN}) →</button>`;
     if(threadCount) h += `<button onclick="showThreads()">✦ The woven threads (${threadCount}) →</button>`;
     if(missCount)   h += `<button onclick="showReview()">↺ Re-walk the missed omens (${missCount}) →</button>`;
     h += `</div>`;
@@ -2608,6 +2617,7 @@ function showThreads(){
   localStorage.removeItem('loom.last');
   document.getElementById('topbar').innerHTML =
     `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showRoster()">Players</button>`+
       `<button onclick="showReview()">Review</button>`+
       `<button onclick="showExam()">Examination</button></div>`+
     `<div class="grp"><button class="active" disabled>The woven threads</button></div>`;
@@ -2641,12 +2651,84 @@ function threadCard(t, srcId){
          `<h3 class="tt">${t.title}</h3><p class="nt">${t.note}</p>${btn}</div>`;
 }
 
+/* ---- ROSTER (all players, across every book) ----
+   Derived live from LOOM_DATA, exactly like the woven threads: no separate
+   character file. A player met in several books is folded into one card that
+   carries the trail of books they walk through. */
+function collectCast(){
+  const groups = { "Mortals":[], "Gods & Powers":[] };
+  const index = {};   // "Bucket|Name" -> card
+  ORDER.filter(authored).forEach(id=>{
+    const d = window.LOOM_DATA[id];
+    if(!d.characters) return;
+    Object.keys(d.characters).forEach(group=>{
+      (d.characters[group]||[]).forEach(c=>{
+        const isGod = group.toLowerCase().includes('god') || c.god;
+        const bucket = isGod ? "Gods & Powers" : "Mortals";
+        const key = bucket + '|' + c.name;
+        if(!index[key]){
+          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', tag:c.tag||'', god:isGod, books:[] };
+          groups[bucket].push(index[key]);
+        }
+        const card = index[key];
+        if(card.books.indexOf(id)<0) card.books.push(id);
+        if(!card.epithet && c.epithet) card.epithet = c.epithet;   // fill blanks from a later book
+        if(!card.role && c.role) card.role = c.role;
+      });
+    });
+  });
+  // most-present first, then alphabetical
+  Object.keys(groups).forEach(g=> groups[g].sort((a,b)=> b.books.length - a.books.length || a.name.localeCompare(b.name)));
+  return groups;
+}
+const castCount = () => { const g=collectCast(); return g["Mortals"].length + g["Gods & Powers"].length; };
+
+function showRoster(){
+  current=null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showReview()">Review</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
+    `<div class="grp"><button class="active" disabled>The players</button></div>`;
+  const cast = collectCast();
+  const total = cast["Mortals"].length + cast["Gods & Powers"].length;
+  const bookN = ORDER.filter(authored).length;
+  let h = `<div class="crown">◈ The Loom names its players ◈</div><h1>The Players of the Iliad</h1>`+
+          `<div class="sub">every mortal and immortal the reading has met — and the books they walk through</div>`+
+          `<div class="meta">${total} named across ${bookN} book${bookN!==1?'s':''} · follow a book to return to it</div>`;
+  if(!total){
+    h += `<div class="empty">No players named yet. Author a book with a <i>characters</i> roster and they gather here.</div>`;
+  } else {
+    ["Mortals","Gods & Powers"].forEach(group=>{
+      const list = cast[group];
+      if(!list.length) return;
+      h += `<div class="band"><span>${group} · ${list.length}</span><hr></div>`;
+      list.forEach(c=> h += castCard(c));
+    });
+  }
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button></div>`;
+  document.getElementById('view').innerHTML = h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* one player card; `c` is a folded cast entry from collectCast() */
+function castCard(c){
+  const godcls = c.god ? ' god' : '';
+  const books = c.books.map(id=>{ const p=planOf(id); return `<button class="lk" onclick="showBook('${id}')">Book ${p?p.n:id}</button>`; }).join('');
+  return `<div class="c"><h4 class="nm">${c.name}</h4><div class="ep${godcls}">${c.epithet}</div>`+
+         `<p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}`+
+         `<div class="seen">Walks through</div><div class="castbooks">${books}</div></div>`;
+}
+
 /* ---- REVIEW (the missed omens, across every book) ---- */
 function showReview(){
   current=null;
   localStorage.removeItem('loom.last');
   document.getElementById('topbar').innerHTML =
     `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showRoster()">Players</button>`+
       `<button onclick="showThreads()">Threads</button>`+
       `<button onclick="showExam()">Examination</button></div>`+
     `<div class="grp"><button class="active" disabled>Re-walking the missed</button></div>`;
@@ -2731,6 +2813,7 @@ function topbar(id){
       `<button onclick="showHome()">✦ All Books</button>`+
       `<button ${prev?`onclick="showBook('${prev}')"`:'disabled'}>← Prev</button>`+
       `<button ${next?`onclick="showBook('${next}')"`:'disabled'}>Next →</button>`+
+      `<button onclick="showRoster()">Players</button>`+
       `<button onclick="showThreads()">Threads</button>`+
       `<button onclick="showReview()">Review</button>`+
       `<button onclick="showExam()">Examination</button>`+
@@ -2931,6 +3014,7 @@ function showExam(){
   localStorage.removeItem('loom.last');
   document.getElementById('topbar').innerHTML =
     `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showRoster()">Players</button>`+
       `<button onclick="showThreads()">Threads</button>`+
       `<button onclick="showReview()">Review</button></div>`+
     `<div class="grp"><button class="active" disabled>The Grand Examination</button></div>`;
