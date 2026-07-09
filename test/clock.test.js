@@ -47,3 +47,17 @@ test('daysUntil counts forward to the deadline', () => {
 test('daysUntil is negative once the door has passed', () => {
   assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-16'), -1);
 });
+
+test('daysUntil absorbs a 23-hour spring-forward day', () => {
+  // 2026-03-08 is the spring-forward DST transition (clock springs forward 1 hour).
+  // (new Date(2026, 2, 9) - new Date(2026, 2, 8)) / 86400000 yields ~0.958
+  // Math.round(0.958) = 1, so naive Math.floor would regress.
+  assert.strictEqual(clock.daysUntil('2026-03-09', '2026-03-08'), 1);
+});
+
+test('daysUntil absorbs a 25-hour fall-back day', () => {
+  // 2026-11-01 is the fall-back DST transition (clock falls back 1 hour).
+  // (new Date(2026, 10, 2) - new Date(2026, 10, 1)) / 86400000 yields ~1.042
+  // Math.round(1.042) = 1, so naive Math.floor would regress.
+  assert.strictEqual(clock.daysUntil('2026-11-02', '2026-11-01'), 1);
+});
