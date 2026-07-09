@@ -2759,7 +2759,9 @@ function foldEpithets(eps){
 /* one player card; `c` is a folded cast entry from collectCast() */
 function castCard(c){
   const godcls = c.god ? ' god' : '';
-  const books = c.books.map(id=>{ const p=planOf(id); return `<button class="lk" onclick="showBook('${id}')">Book ${p?p.n:id}</button>`; }).join('');
+  // The trail is a record of where the reader has met them, not a map of where they will.
+  const trail = c.books.filter(isRead).length ? c.books.filter(isRead) : c.books.slice(0,1);
+  const books = trail.map(id=>{ const p=planOf(id); return `<button class="lk" onclick="showBook('${id}')">Book ${p?p.n:id}</button>`; }).join('');
   // Only name a character as the books the reader has finished name them. An epithet
   // is a milder spoiler than an event, but "bulwark of Troy" still belongs to Book 6.
   const allEps = c.epithets || [];
@@ -2783,7 +2785,7 @@ function castCard(c){
   const read = notes.filter(n=> isRead(n.book));
   const note = (read.length ? read[read.length-1] : notes[0]) || { book:'', role:'', tag:'' };
   const nb = note.book && planOf(note.book);
-  const from = (nb && c.books.length > 1) ? `<div class="rlfrom">as of Book ${nb.n}</div>` : '';
+  const from = (nb && trail.length > 1) ? `<div class="rlfrom">as of Book ${nb.n}</div>` : '';
   return `<div class="c"><h4 class="nm">${c.name}</h4>${ep}`+
          `${from}<p class="rl">${note.role}</p>${note.tag?`<span class="tag">${note.tag}</span>`:''}`+
          `<div class="seen">Walks through</div><div class="castbooks">${books}</div></div>`;
