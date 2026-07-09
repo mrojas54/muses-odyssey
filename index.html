@@ -100,6 +100,7 @@
   .c .epvar .ept{font-style:italic; color:var(--wine);}
   .c .eplist.god .epvar .ept{color:var(--sky);}
   .c .epvar .epbooks{font-size:11px; letter-spacing:1.4px; color:var(--gold); white-space:nowrap;}
+  .c .rlfrom{font-size:10.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--gold); margin:10px 0 -2px;}
   .c .rl{margin:0; font-size:15px;}
   .tag{display:inline-block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--olive); border:1px solid var(--line); border-radius:20px; padding:2px 9px; margin-top:9px;}
   /* roster: the books a player walks through */
@@ -2683,13 +2684,16 @@ function collectCast(){
         const bucket = isGod ? "Gods & Powers" : "Mortals";
         const key = bucket + '|' + c.name;
         if(!index[key]){
-          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', tag:c.tag||'', god:isGod, books:[], epithets:[] };
+          index[key] = { name:c.name, epithet:c.epithet||'', role:c.role||'', roleBook:'', tag:c.tag||'', god:isGod, books:[], epithets:[] };
           groups[bucket].push(index[key]);
         }
         const card = index[key];
         if(card.books.indexOf(id)<0) card.books.push(id);
-        if(!card.epithet && c.epithet) card.epithet = c.epithet;   // fill blanks from a later book
-        if(!card.role && c.role) card.role = c.role;
+        // ORDER runs ascending, so the last book to name them wins: a card should
+        // show who a character has become, not who they were when first met.
+        if(c.epithet) card.epithet = c.epithet;
+        if(c.role){ card.role = c.role; card.roleBook = id; }
+        if(c.tag) card.tag = c.tag;
         if(c.epithet){                                             // an epithet may shift book to book
           let e = card.epithets.find(x=> x.ep === c.epithet);
           if(!e){ e = { ep:c.epithet, books:[] }; card.epithets.push(e); }
@@ -2769,8 +2773,10 @@ function castCard(c){
     ep = (fold.common ? `<div class="ep has-variants${godcls}">${fold.common}</div>` : '')
        + `<div class="eplist${godcls}">${rows}</div>`;
   }
+  const rb = c.roleBook && planOf(c.roleBook);
+  const from = (rb && c.books.length > 1) ? `<div class="rlfrom">as of Book ${rb.n}</div>` : '';
   return `<div class="c"><h4 class="nm">${c.name}</h4>${ep}`+
-         `<p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}`+
+         `${from}<p class="rl">${c.role}</p>${c.tag?`<span class="tag">${c.tag}</span>`:''}`+
          `<div class="seen">Walks through</div><div class="castbooks">${books}</div></div>`;
 }
 
