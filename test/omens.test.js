@@ -50,6 +50,18 @@ test('isKinshipEpithet does not flag "of the Greek host" — no person named', (
   assert.strictEqual(omens.isKinshipEpithet('lord of men, high king of the Greek host'), false);
 });
 
+test('isKinshipEpithet flags "grandson of X" — a kinship word the first pass missed', () => {
+  // data/iliad-06.js, Glaucus
+  assert.strictEqual(omens.isKinshipEpithet('grandson of Bellerophon, captain of Lycia'), true);
+});
+
+test('isKinshipEpithet flags the possessive form "Achilles\' foster-father"', () => {
+  // data/iliad-09.js, Phoenix. Possessive names a kinsman just as plainly as "son of".
+  assert.strictEqual(omens.isKinshipEpithet("the old charioteer, Achilles' foster-father"), true);
+  // ...but a possessive naming a NON-kinsman must still pass through.
+  assert.strictEqual(omens.isKinshipEpithet("goddess of desire, Paris's patron"), false);
+});
+
 test('bandOf routes by group name and by the god flag', () => {
   assert.strictEqual(omens.bandOf('Gods & Powers', { name: 'Athena' }), 'gods');
   assert.strictEqual(omens.bandOf('Mortals', { name: 'Ajax' }), 'mortals');

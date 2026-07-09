@@ -10,8 +10,18 @@
   /* An epithet that names a kinsman answers itself: "son of Peleus" IS Achilles.
      Such epithets are fine roster glosses and useless quiz prompts, so they are
      filtered here rather than corrected in the data.
-     Note "of the Greek host" must NOT match — no person is named. */
-  const KINSHIP = /\b(son|daughter|father|mother|wife|brother|sister|husband) of [A-Z]/;
+
+     Two constructions appear in the corpus:
+       "grandson of Bellerophon"        — kinship word, then "of", then a name
+       "Achilles' foster-father"        — a possessive name, then a kinship word
+     Note "of the Greek host" must NOT match: no person is named. Nor must
+     "Paris's patron" — possessive, but "patron" is no kin. */
+  const KIN = "(?:foster-|step-|half-|grand|great-grand)?(?:son|daughter|father|mother|brother|sister)|wife|husband";
+  const KINSHIP = new RegExp(
+    "\\b(?:" + KIN + ")\\s+of\\s+[A-Z]" +
+    "|[A-Z][\\p{L}]*(?:['']s|[''])\\s+(?:" + KIN + ")",
+    "u"
+  );
   const isKinshipEpithet = ep => KINSHIP.test(ep || '');
 
   const bandOf = (group, c) =>
