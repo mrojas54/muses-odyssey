@@ -439,10 +439,15 @@ function foldEpithets(eps){
 function castCard(c){
   const godcls = c.god ? ' god' : '';
   const books = c.books.map(id=>{ const p=planOf(id); return `<button class="lk" onclick="showBook('${id}')">Book ${p?p.n:id}</button>`; }).join('');
-  const fold = foldEpithets(c.epithets);
+  // Only name a character as the books the reader has finished name them. An epithet
+  // is a milder spoiler than an event, but "bulwark of Troy" still belongs to Book 6.
+  const allEps = c.epithets || [];
+  const gated = allEps.map(e=> ({ ep:e.ep, books:e.books.filter(isRead) })).filter(e=> e.books.length);
+  const eps = gated.length ? gated : allEps.slice(0,1);   // nothing read yet: the earliest variant
+  const fold = foldEpithets(eps);
   let ep;
   if(!fold){
-    ep = `<div class="ep${godcls}">${c.epithet}</div>`;
+    ep = `<div class="ep${godcls}">${(eps[0] && eps[0].ep) || c.epithet}</div>`;
   } else {
     const rows = fold.variants.map(v=>{
       const ns = v.books.map(id=>{ const p=planOf(id); return p?p.n:id; }).join(' · ');
