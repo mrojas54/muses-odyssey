@@ -414,8 +414,19 @@ Create `app/omens.js`:
   /* An epithet that names a kinsman answers itself: "son of Peleus" IS Achilles.
      Such epithets are fine roster glosses and useless quiz prompts, so they are
      filtered here rather than corrected in the data.
-     Note "of the Greek host" must NOT match — no person is named. */
-  const KINSHIP = /\b(son|daughter|father|mother|wife|brother|sister|husband) of [A-Z]/;
+
+     Two constructions appear in the corpus:
+       "grandson of Bellerophon"   — kinship word, then "of", then a name
+       "Achilles' foster-father"   — a possessive name, then a kinship word
+                                     (straight ' and typographic ’ both match)
+     Note "of the Greek host" must NOT match: no person is named. Nor must
+     "Paris's patron" — possessive, but "patron" is no kin. */
+  const KIN = "(?:foster-|step-|half-|grand|great-grand)?(?:son|daughter|father|mother|brother|sister)|wife|husband";
+  const KINSHIP = new RegExp(
+    "\\b(?:" + KIN + ")\\s+of\\s+[A-Z]" +
+    "|[A-Z][\\p{L}]*(?:[’']s|[’'])\\s+(?:" + KIN + ")",
+    "u"
+  );
   const isKinshipEpithet = ep => KINSHIP.test(ep || '');
 
   const bandOf = (group, c) =>
@@ -460,7 +471,7 @@ Create `app/omens.js`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 8`, `# fail 0`
+Expected: PASS — `# pass 11`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -574,7 +585,7 @@ and add `epithetOmen` to the `api` object:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 12`, `# fail 0`
+Expected: PASS — `# pass 15`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -689,7 +700,7 @@ and add `sequenceOmen` to `api`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 16`, `# fail 0`
+Expected: PASS — `# pass 19`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -865,7 +876,7 @@ Because `parts` retains its separators, `shown.join('')` reproduces the epigraph
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 23`, `# fail 0`
+Expected: PASS — `# pass 26`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -979,7 +990,7 @@ and add `dailyRite` to `api`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 28`, `# fail 0`
+Expected: PASS — `# pass 31`, `# fail 0`
 
 - [ ] **Step 5: Wire it into the page**
 
@@ -1619,8 +1630,10 @@ git commit -m "feat(rite): the Daily Rite — practice that never spins the thre
 
 - [ ] **Step 1: Run the whole test suite**
 
-Run: `node --test test/`
-Expected: PASS — `# pass 40`, `# fail 0` (12 clock + 28 omens).
+Run: `node --test test/*.test.js`
+Expected: PASS — `# pass 43`, `# fail 0` (12 clock + 31 omens).
+
+**Do not run `node --test test/`.** Node 22 resolves a bare directory as a *module path*, not a glob, and fails with `Cannot find module '.../test'` — a failure that looks like a broken suite but is a broken command. Either pass the glob (`test/*.test.js`) or run bare `node --test`, which uses Node's default test discovery.
 
 - [ ] **Step 2: Rebuild and check the bundler's own sanity output**
 
