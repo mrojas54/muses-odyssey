@@ -157,7 +157,9 @@ Create `app/clock.js`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/clock.test.js`
-Expected: PASS — `# pass 10`, `# fail 0`
+Expected: PASS — `# pass 12`, `# fail 0`
+
+(10 tests above, plus two DST-crossing tests added in review: `daysUntil` across the 23-hour spring-forward day and the 25-hour fall-back day. `test/clock.test.js` pins `process.env.TZ = 'America/New_York'` at the top — without it, a UTC environment makes both days exactly 24 hours and the rounding assertions become vacuous.)
 
 - [ ] **Step 5: Commit**
 
@@ -1618,7 +1620,7 @@ git commit -m "feat(rite): the Daily Rite — practice that never spins the thre
 - [ ] **Step 1: Run the whole test suite**
 
 Run: `node --test test/`
-Expected: PASS — `# pass 38`, `# fail 0` (10 clock + 28 omens).
+Expected: PASS — `# pass 40`, `# fail 0` (12 clock + 28 omens).
 
 - [ ] **Step 2: Rebuild and check the bundler's own sanity output**
 
