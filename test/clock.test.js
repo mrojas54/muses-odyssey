@@ -46,6 +46,10 @@ test('daysUntil counts forward to the deadline', () => {
   assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-09'), 19);
 });
 
+test('daysUntil matches the July 10 book-club countdown', () => {
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-10'), 18);
+});
+
 test('daysUntil is negative once the door has passed', () => {
   assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-29'), -1);
 });
