@@ -127,6 +127,26 @@
              border-radius:6px; min-width:34px; min-height:34px; font:inherit; cursor:pointer;}
   .rite .adj:active{background:var(--parch2);}
 
+  /* the fraying thread — a barometer, never a life bar */
+  .fraythread{display:flex; align-items:center; gap:8px; justify-content:center; margin:12px 0 4px;}
+  .fraythread .pips{display:flex; gap:5px;}
+  .fraythread .pip{width:9px; height:9px; border-radius:50%; background:var(--gold);
+                   transition:background .35s, opacity .35s;}
+  .fraythread .pip.frayed{background:transparent; box-shadow:inset 0 0 0 1px var(--no); opacity:.55;}
+  .fraythread .shears{color:var(--soft); font-size:15px; transition:color .35s;}
+  .fraythread .shears.near{color:var(--no);}
+  .fraythread .lbl{font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--soft);}
+
+  /* sequence omens — tap the beats into their true order */
+  .seq{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .seq .beat{text-align:left; background:var(--card); border:1px solid var(--line);
+             border-radius:8px; padding:11px 13px; font:inherit; color:var(--ink);
+             cursor:pointer; min-height:44px;}
+  .seq .beat:active{background:var(--parch2);}
+  .seq .beat.chosen{border-color:var(--gold); color:var(--soft);}
+  .seq .beat .ord{color:var(--wine); font-weight:bold; margin-right:8px;}
+  .seq .beat[disabled]{cursor:default;}
+
   /* quiz */
   .divider{text-align:center; color:var(--gold); letter-spacing:6px; margin:34px 0 26px; font-size:16px;}
   .gate{text-align:center; margin-bottom:8px;}
@@ -740,6 +760,7 @@ function renderBody(d){
     h += `<div class="priorscore">${best!=null?`Your best reckoning here: ${best} / ${d.quiz.length}`:'Not yet examined on this book.'}</div>`;
     const pm = priorMiss(current);
     if(pm.length) h += `<div class="missnote">↺ ${pm.length} omen${pm.length>1?'s':''} slipped last time — marked below. Linger there.</div>`;
+    h += renderThread(d.quiz.length);
     h += `<div class="tally" id="tally">${d.quiz.length} omens to read · none yet turned</div><div id="quiz"></div>`;
     h += `<div id="verdict"><div class="crown" style="color:#e8c79a;">The Fates Render Judgment</div><div class="score" id="scoreNum"></div><div class="vline" id="vLine"></div><div class="breakdown" id="breakdown"></div><div class="small">Tap a truth to read it · the thread spins on</div><button onclick="showBook(current)">Sit the omens again</button></div>`;
   }
@@ -763,6 +784,66 @@ function shuffleOpts(item){
   for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
   return { opts: idx.map(i=>item.opts[i]), correct: idx.indexOf(item.correct) };
 }
+
+const FORMAT = { choice:'choice', sequence:'sequence' };
+const formatOf = o => FORMAT[o && o.format] || FORMAT.choice;
+
+function renderThread(total){
+  const pips = Array.from({length: total}, () => '<i class="pip"></i>').join('');
+  return `<div class="fraythread"><span class="lbl">The thread</span>`+
+         `<span class="pips">${pips}</span><span class="shears">✂</span></div>`;
+}
+function frayThread(missCount, total){
+  const pips = document.querySelectorAll('.fraythread .pip');
+  for(let i=0; i<pips.length; i++) pips[i].classList.toggle('frayed', i < missCount);
+  const sh = document.querySelector('.fraythread .shears');
+  if(sh) sh.classList.toggle('near', total>0 && missCount > total/2);
+}
+
+function renderChoice(card, item, onDone){
+  const view = shuffleOpts(item);
+  view.opts.forEach((text, oi) => {
+    const b = document.createElement('button'); b.className='opt'; b.textContent = text;
+    b.onclick = () => {
+      card.querySelectorAll('.opt').forEach(x => x.disabled = true);
+      const btns = card.querySelectorAll('.opt');
+      const right = oi === view.correct;
+      if(right) b.classList.add('correct');
+      else { b.classList.add('wrong'); btns[view.correct].classList.add('correct'); }
+      onDone(right);
+    };
+    card.appendChild(b);
+  });
+}
+
+function renderSequence(card, item, onDone){
+  const wrap = document.createElement('div'); wrap.className='seq';
+  const chosen = [];
+  item.items.forEach((title, idx) => {
+    const b = document.createElement('button');
+    b.className = 'beat'; b.type = 'button';
+    b.innerHTML = `<span class="ord"></span>${title}`;
+    b.onclick = () => {
+      if(b.classList.contains('chosen')) return;
+      chosen.push(idx);
+      b.classList.add('chosen');
+      b.querySelector('.ord').textContent = chosen.length + '.';
+      if(chosen.length === item.items.length){
+        wrap.querySelectorAll('.beat').forEach(x => x.disabled = true);
+        const right = chosen.every((v,i) => v === item.answer[i]);
+        wrap.querySelectorAll('.beat').forEach((x,i) => {
+          const place = item.answer.indexOf(i);
+          x.querySelector('.ord').textContent = (place+1) + '.';
+          x.style.borderColor = right ? 'var(--ok)' : 'var(--line)';
+        });
+        onDone(right);
+      }
+    };
+    wrap.appendChild(b);
+  });
+  card.appendChild(wrap);
+}
+
 /* A read book with a perfect best score is shown as already-completed: every
    question rendered pre-answered (correct option locked green, truth revealed),
    the golden verdict shown statically, and the "Sit the omens again" button
@@ -817,19 +898,13 @@ function buildQuiz(Q, forceFresh){
       `${missedBefore?'<span class="missflag">↺ missed last time</span>':''}</div>`+
       `<div class="qt">${item.q}</div>`;
     const truth=document.createElement('div'); truth.className='truth'; truth.innerHTML=item.truth;
-    const view=shuffleOpts(item);
-    view.opts.forEach((text,oi)=>{
-      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
-      b.onclick=()=>{
-        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
-        const btns=card.querySelectorAll('.opt');
-        if(oi===view.correct){ b.classList.add('correct'); score++; stats[k].c++; }
-        else{ b.classList.add('wrong'); btns[view.correct].classList.add('correct'); missArr.push(qi); }
-        truth.classList.add('show'); answered++;
-        document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
-        if(answered===Q.length) reveal(score, Q.length, stats, missArr);
-      };
-      card.appendChild(b);
+    const renderer = formatOf(item)==='sequence' ? renderSequence : renderChoice;
+    renderer(card, item, right => {
+      if(right){ score++; stats[k].c++; }
+      else { missArr.push(qi); frayThread(missArr.length, Q.length); }
+      truth.classList.add('show'); answered++;
+      document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
+      if(answered===Q.length) reveal(score, Q.length, stats, missArr);
     });
     card.appendChild(truth); quiz.appendChild(card);
   });
@@ -842,6 +917,7 @@ function retakeQuiz(){
   const v=document.getElementById('verdict');
   if(v){ v.classList.remove('show'); const again=v.querySelector('button'); if(again) again.onclick=()=>showBook(current); }
   document.getElementById('quiz').innerHTML='';
+  frayThread(0, d.quiz.length);
   document.getElementById('tally').textContent=`${d.quiz.length} omens to read · none yet turned`;
   buildQuiz(d.quiz, true);
 }
