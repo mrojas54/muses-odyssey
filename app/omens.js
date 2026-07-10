@@ -108,7 +108,7 @@
         }
       }
     }
-    const picked = spread.length
+    const picked = spread.length >= 3
       ? spread[Math.floor(rng() * spread.length)]
       : shuffle(uniq, rng).slice(0, 4);
     const items = shuffle(picked, rng);
@@ -147,9 +147,19 @@
        between them. */
     const parts = ep.text.split(/([\s—–]+)/);
     const isSep = s => /^[\s—–]+$/.test(s);
+    const wordCounts = tokenize(ep.text).reduce((counts, w) => {
+      const lw = w.toLowerCase();
+      counts[lw] = (counts[lw] || 0) + 1;
+      return counts;
+    }, {});
     const cands = parts
       .map((w, i) => ({ i, raw: w, clean: w.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '') }))
-      .filter(x => !isSep(x.raw) && isCandidate(x.clean));
+      .filter(x => !isSep(x.raw) && isCandidate(x.clean) && wordCounts[x.clean.toLowerCase()] === 1)
+      .filter(x => {
+        const testShown = parts.slice();
+        testShown[x.i] = x.raw.replace(x.clean, '____');
+        return !testShown.join('').toLowerCase().includes(x.clean.toLowerCase());
+      });
     if (!cands.length) return null;
 
     const pick = cands[Math.floor(rng() * cands.length)];
@@ -179,7 +189,8 @@
     return {
       format: 'choice',
       kind: 'meaning',
-      q: 'Fagles wrote it thus. Which word is missing?<br><i>' + shown.join('') + '</i>',
+      q: (ep.verbatim === true ? 'Fagles wrote it thus.' : 'The Loom recalls the line.') +
+        ' Which word is missing?<br><i>' + shown.join('') + '</i>',
       opts: choices,
       correct: choices.indexOf(pick.clean),
       truth: '<b>' + pick.clean + '</b> — ' + (ep.src || '')
@@ -190,6 +201,7 @@
      are the new flavor), then authored omens fill to n, then the whole draw is
      shuffled so the sequence question is not always at the top. */
   function dailyRite(books, opts) {
+    books = (books || []).filter(b => b && b.data);
     opts = opts || {};
     const n = opts.n || 5;
     const rng = opts.rng || Math.random;

@@ -13,7 +13,7 @@ Then add the `id` to `data/manifest.js` (the `window.LOOM_BOOKS` array), in read
 ## Book object
 
 ```
-meta:        { id, epic, song, book, title, subtitle, tagline, epigraph:{text, src} }
+meta:        { id, epic, song, book, title, subtitle, tagline, epigraph:{text, src, verbatim?} }
 recap:       [ "<p-html>", ... ]        // optional — "Previously, on <epic>": the story up to but NOT including this book
 scene:       [ "<p-html>", ... ]        // dark scene-set card; 1–3 paragraphs
 terms:       [ { gk, def }, ... ]        // optional — Greek/key words to carry (e.g. mēnis, timē)
@@ -55,6 +55,7 @@ safe; an `"ahead"` thread should hint, not spoil, a book not yet read.
 - `correct` is the 0-based index of the right option.
 - Voice: the Loom / Oracle register — see CLAUDE.md. Spoiler-aware: name what a book *sets up* for later books, since the reader has the prior ones.
 - `recap` renders a "Previously, on <epic>" card between the epigraph and the scene-set. It is the story **up to but not including this book** (Book 1's is the pre-war backstory), so it is spoiler-safe by construction. The card is italic — use `<b>` (upright ink) for name/callout emphasis, not `<i>`. Paraphrase in the app's voice; do not wrap in quotation marks (that convention is reserved for verbatim Fagles).
+- `meta.epigraph.verbatim` is optional and defaults to false. Set it to `true` only when `text` has been verified as a verbatim Fagles quotation. Derived line omens use this flag to decide whether they may say "Fagles wrote it thus"; paraphrases get Loom-voice recall copy instead.
 - Data is trusted (authored locally); the renderer injects it as HTML. Do not paste untrusted content.
 
 ## Add a book by hand

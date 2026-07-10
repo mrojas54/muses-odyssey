@@ -10,7 +10,8 @@ window.LOOM_DATA["iliad-01"] = {
     tagline: "Scene · nine movements · the roster · then the Ninth Hour",
     epigraph: {
       text: "\"Rage—Goddess, sing the rage of Peleus' son Achilles, murderous, doomed, that cost the Achaeans countless losses…\"",
-      src: "Fagles, Iliad 1.1–2 — the poem's very first word is rage (mēnis)"
+      src: "Fagles, Iliad 1.1–2 — the poem's very first word is rage (mēnis)",
+      verbatim: true
     }
   },
 
