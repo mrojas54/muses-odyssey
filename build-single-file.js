@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-/* Bundler: inline manifest + all registered books into app/index.html, producing a
-   single self-contained the-muses-odyssey.html for offline / phone / AirDrop use.
+/* Bundler: inline first-party scripts, manifest, and all registered books into
+   app/index.html, producing a single self-contained the-muses-odyssey.html for
+   offline / phone / AirDrop use.
 
    Reads the real source files (source of truth) and writes ONE derived file next to
    itself. It does not modify app/index.html or anything under data/. Re-run it after
@@ -87,7 +88,7 @@ html = html.replace(manifestTag, inlined);
 // 3b. Inline first-party app scripts. A relative src works when app/index.html is
 //     double-clicked, but the bundle lives at the repo root, so the src would 404.
 //     Guarded like the manifest tag: if the shape changes, fail loudly, never silently.
-const APP_SCRIPTS = ['clock.js'];
+const APP_SCRIPTS = ['clock.js', 'omens.js'];
 for (const name of APP_SCRIPTS) {
   const tag = `<script src="${name}"></script>`;
   if (!html.includes(tag)) throw new Error(`app script tag not found: ${tag} — index.html shape changed`);

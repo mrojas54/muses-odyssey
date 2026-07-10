@@ -186,7 +186,34 @@
     };
   }
 
-  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen, sequenceOmen, lineOmen };
+  /* The Daily Rite: a mixed draw across every read book. Derived omens first (they
+     are the new flavor), then authored omens fill to n, then the whole draw is
+     shuffled so the sequence question is not always at the top. */
+  function dailyRite(books, opts) {
+    opts = opts || {};
+    const n = opts.n || 5;
+    const rng = opts.rng || Math.random;
+    const label = opts.label || (id => id);
+    if (!books.length) return [];
+
+    const anyBook = () => books[Math.floor(rng() * books.length)];
+    const draw = [
+      sequenceOmen(anyBook(), rng),
+      epithetOmen(epithetPool(books), { rng, label }),
+      lineOmen(anyBook(), books, rng)
+    ].filter(Boolean);
+
+    const authored = [];
+    books.forEach(b => (b.data.quiz || []).forEach((item, qi) => {
+      authored.push(Object.assign({}, item, { format: 'choice', srcId: b.id, qi }));
+    }));
+
+    const need = Math.max(0, n - draw.length);
+    const filled = draw.concat(shuffle(authored, rng).slice(0, need));
+    return shuffle(filled, rng).slice(0, n);
+  }
+
+  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen, sequenceOmen, lineOmen, dailyRite };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LOOM_OMENS = api;
 })(this);

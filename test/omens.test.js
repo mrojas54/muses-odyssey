@@ -277,3 +277,43 @@ test('lineOmen returns null without an epigraph', () => {
 test('lineOmen returns null when no other book can supply distractors', () => {
   assert.strictEqual(omens.lineOmen(EPI_BOOKS[0], [EPI_BOOKS[0]], seeded(1)), null);
 });
+
+const RITE_BOOKS = EPI_BOOKS.map((b, k) => ({
+  id: b.id,
+  data: {
+    meta: b.data.meta,
+    movements: SEQ_BOOK.data.movements,
+    characters: BOOKS[0].data.characters,
+    quiz: [
+      { n: 1, kind: 'event', q: 'Authored Q' + k, opts: ['a', 'b', 'c', 'd'], correct: 0, truth: 't' },
+      { n: 2, kind: 'meaning', q: 'Authored R' + k, opts: ['a', 'b', 'c', 'd'], correct: 1, truth: 't' }
+    ]
+  }
+}));
+
+test('dailyRite returns exactly n omens and no nulls', () => {
+  const r = omens.dailyRite(RITE_BOOKS, { n: 5, rng: seeded(2), label: LABEL });
+  assert.strictEqual(r.length, 5);
+  assert.ok(r.every(Boolean));
+});
+
+test('dailyRite includes derived formats, not only authored omens', () => {
+  const r = omens.dailyRite(RITE_BOOKS, { n: 5, rng: seeded(2), label: LABEL });
+  assert.ok(r.some(o => o.format === 'sequence'), 'expected a sequence omen');
+});
+
+test('dailyRite every omen carries a format', () => {
+  const r = omens.dailyRite(RITE_BOOKS, { n: 5, rng: seeded(4), label: LABEL });
+  r.forEach(o => assert.ok(o.format === 'choice' || o.format === 'sequence'));
+});
+
+test('dailyRite on an empty read-list yields nothing', () => {
+  assert.deepStrictEqual(omens.dailyRite([], { n: 5, rng: seeded(1), label: LABEL }), []);
+});
+
+test('dailyRite degrades gracefully for a reader one book in', () => {
+  const one = [RITE_BOOKS[0]];
+  const r = omens.dailyRite(one, { n: 5, rng: seeded(6), label: LABEL });
+  assert.ok(r.length >= 1 && r.length <= 5);
+  assert.ok(r.every(Boolean), 'a thin pool must drop omens, never emit null');
+});
