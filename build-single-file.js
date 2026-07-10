@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-/* Bundler: inline manifest + all registered books into app/index.html, producing a
-   single self-contained the-muses-odyssey.html for offline / phone / AirDrop use.
+/* Bundler: inline first-party scripts, manifest, and all registered books into
+   app/index.html, producing a single self-contained the-muses-odyssey.html for
+   offline / phone / AirDrop use.
 
    Reads the real source files (source of truth) and writes ONE derived file next to
    itself. It does not modify app/index.html or anything under data/. Re-run it after
@@ -55,6 +56,7 @@ const harness = [
   '    };',
   "    try{ Object.defineProperty(window,'localStorage',{configurable:true,writable:true,value:shim}); }",
   '    catch(e){ try{ window.localStorage=shim; }catch(e2){} }',
+  '    window.__loomVolatile=true;   /* in-memory: writes vanish on reload. No streak may claim to persist. */',
   '  }',
   "  window.addEventListener('error',function(ev){",
   "    var view=document.getElementById('view');",
@@ -83,6 +85,16 @@ const manifestTag = '<script src="../data/manifest.js"></script>';
 if (!html.includes(manifestTag)) throw new Error('manifest <script> tag not found — index.html shape changed');
 html = html.replace(manifestTag, inlined);
 
+// 3b. Inline first-party app scripts. A relative src works when app/index.html is
+//     double-clicked, but the bundle lives at the repo root, so the src would 404.
+//     Guarded like the manifest tag: if the shape changes, fail loudly, never silently.
+const APP_SCRIPTS = ['clock.js', 'omens.js'];
+for (const name of APP_SCRIPTS) {
+  const tag = `<script src="${name}"></script>`;
+  if (!html.includes(tag)) throw new Error(`app script tag not found: ${tag} — index.html shape changed`);
+  html = html.replace(tag, '<script>\n' + read(`app/${name}`).trim() + '\n</script>');
+}
+
 // 4. Neutralize the async ../data loader — data is already present, so just boot()
 const startAnchor = 'let pending = LOAD.length;';
 const endAnchor = 'document.head.appendChild(s);\n});';
@@ -110,8 +122,11 @@ fs.writeFileSync(OUT, html);
 
 // sanity: no leftover parent-dir references, and every book id appears in the output
 const leftover = (html.match(/\.\.\/data\//g) || []).length;
+const unInlined = APP_SCRIPTS.filter(n => html.includes(`<script src="${n}"></script>`));
 const missing = ids.filter(id => !html.includes(`window.LOOM_DATA["${id}"]`));
 console.log('Wrote:', OUT);
 console.log('Size:', (Buffer.byteLength(html) / 1024).toFixed(1), 'KB');
 console.log('Leftover ../data/ refs:', leftover, '(must be 0)');
 console.log('Books missing from output:', missing.length ? missing.join(', ') : 'none');
+console.log('Un-inlined app scripts:', unInlined.length ? unInlined.join(', ') : 'none');
+if (unInlined.length) throw new Error('app scripts left un-inlined — the bundle would 404 on them');

@@ -16,7 +16,7 @@
 - **Spoiler gate:** every derived omen draws only from books where `isRead(id)` is true. Same rule as `collectCast()` (`app/index.html:360`).
 - **No timer. No fail state.** The fraying thread is a barometer; nothing locks or resets.
 - **Pass threshold is `0.7`**, reusing the existing verdict tier at `app/index.html:735`. Do not invent a new number.
-- **Deadline constant:** `'2026-07-15'`. When it has passed, the Atropos line hides — never render a negative countdown.
+- **Deadline constant:** `'2026-07-28'`. When it has passed, the Atropos line hides — never render a negative countdown.
 - **Voice:** parchment register, wine + gold. Quotation marks are reserved for verbatim Fagles. Do not wrap paraphrase in quotes.
 - **Deploy is:** `node build-single-file.js && cp the-muses-odyssey.html index.html`, then commit and push `main`.
 
@@ -93,11 +93,11 @@ test('streakNext resets to 1 after a missed day', () => {
 });
 
 test('daysUntil counts forward to the deadline', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-09'), 6);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-09'), 19);
 });
 
 test('daysUntil is negative once the door has passed', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-16'), -1);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-29'), -1);
 });
 ```
 
@@ -157,7 +157,9 @@ Create `app/clock.js`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/clock.test.js`
-Expected: PASS — `# pass 10`, `# fail 0`
+Expected: PASS — `# pass 12`, `# fail 0`
+
+(10 tests above, plus two DST-crossing tests added in review: `daysUntil` across the 23-hour spring-forward day and the 25-hour fall-back day. `test/clock.test.js` pins `process.env.TZ = 'America/New_York'` at the top — without it, a UTC environment makes both days exactly 24 hours and the rounding assertions become vacuous.)
 
 - [ ] **Step 5: Commit**
 
@@ -412,8 +414,19 @@ Create `app/omens.js`:
   /* An epithet that names a kinsman answers itself: "son of Peleus" IS Achilles.
      Such epithets are fine roster glosses and useless quiz prompts, so they are
      filtered here rather than corrected in the data.
-     Note "of the Greek host" must NOT match — no person is named. */
-  const KINSHIP = /\b(son|daughter|father|mother|wife|brother|sister|husband) of [A-Z]/;
+
+     Two constructions appear in the corpus:
+       "grandson of Bellerophon"   — kinship word, then "of", then a name
+       "Achilles' foster-father"   — a possessive name, then a kinship word
+                                     (straight ' and typographic ’ both match)
+     Note "of the Greek host" must NOT match: no person is named. Nor must
+     "Paris's patron" — possessive, but "patron" is no kin. */
+  const KIN = "(?:foster-|step-|half-|grand|great-grand)?(?:son|daughter|father|mother|brother|sister)|wife|husband";
+  const KINSHIP = new RegExp(
+    "\\b(?:" + KIN + ")\\s+of\\s+[A-Z]" +
+    "|[A-Z][\\p{L}]*(?:[’']s|[’'])\\s+(?:" + KIN + ")",
+    "u"
+  );
   const isKinshipEpithet = ep => KINSHIP.test(ep || '');
 
   const bandOf = (group, c) =>
@@ -458,7 +471,7 @@ Create `app/omens.js`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 8`, `# fail 0`
+Expected: PASS — `# pass 11`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -572,7 +585,7 @@ and add `epithetOmen` to the `api` object:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 12`, `# fail 0`
+Expected: PASS — `# pass 15`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -687,7 +700,7 @@ and add `sequenceOmen` to `api`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 16`, `# fail 0`
+Expected: PASS — `# pass 19`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -863,7 +876,7 @@ Because `parts` retains its separators, `shown.join('')` reproduces the epigraph
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 23`, `# fail 0`
+Expected: PASS — `# pass 26`, `# fail 0`
 
 - [ ] **Step 5: Commit**
 
@@ -977,7 +990,7 @@ and add `dailyRite` to `api`:
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/omens.test.js`
-Expected: PASS — `# pass 28`, `# fail 0`
+Expected: PASS — `# pass 31`, `# fail 0`
 
 - [ ] **Step 5: Wire it into the page**
 
@@ -1048,7 +1061,7 @@ In `app/index.html`, immediately after the `saveMiss` line (currently line 232),
 
    The Daily Rite and the Grand Examination must NOT call recordDay(). Only a
    per-book sitting can advance a day. */
-const DEADLINE = '2026-07-15';
+const DEADLINE = '2026-07-28';
 const PASS_RATIO = 0.7;                 // the "thread holds bright" tier, reused
 const dayKey = k => 'loom.day.' + k;
 
@@ -1273,12 +1286,12 @@ node build-single-file.js
 Load the c11-browser skill and open `the-muses-odyssey.html`. Confirm on the home screen:
 - "The day's measure" card shows `0 of 1 books today`.
 - The `–` / `+` buttons change the goal and the card re-renders.
-- The Atropos line reads `Atropos waits 6 days hence · 6 books on the loom, unread` (on 2026-07-09).
+- The Atropos line reads `Atropos waits 19 days hence · 6 books on the loom, unread` (on 2026-07-09).
 - A streak line appears (storage is durable when served over `http`/`file` with a real origin).
 
 - [ ] **Step 5: Verify the deadline expires cleanly**
 
-In the browser console, run `LOOM_CLOCK.daysUntil('2026-07-15','2026-07-16')`.
+In the browser console, run `LOOM_CLOCK.daysUntil('2026-07-28','2026-07-29')`.
 Expected: `-1`. Confirm `riteCard()` renders no door line for a non-positive value (the `days > 0` guard).
 
 - [ ] **Step 6: Commit**
@@ -1298,8 +1311,9 @@ The thread is a barometer, not a life bar. Nothing locks; nothing resets; there 
 - Modify: `app/index.html` — CSS near line 117; `buildQuiz` (line 651).
 
 **Interfaces:**
-- Consumes: omen objects with `format`.
-- Produces: `renderThread(total)`, `frayThread(missCount)`, `renderSequence(card, item, onDone)`.
+- Consumes: omen objects with `format`; `shuffleOpts` (`app/index.html:640`).
+- Produces: `renderThread(total) -> html`, `frayThread(missCount, total)`, `renderChoice(card, item, onDone)`, `renderSequence(card, item, onDone)`, `formatOf(omen) -> string`.
+  Both renderers share the signature `(card, item, onDone)` and call `onDone(right: boolean)` exactly once. Neither reveals the truth or updates the tally — that is the caller's bookkeeping.
 
 - [ ] **Step 1: Add the styles**
 
@@ -1352,6 +1366,26 @@ function frayThread(missCount, total){
   if(sh) sh.classList.toggle('near', total>0 && missCount > total/2);
 }
 
+/* The two renderers share one shape: (card, item, onDone), calling onDone(right)
+   exactly once. Neither reveals the truth nor touches the tally — that bookkeeping
+   differs between a graded sitting and the Rite's practice, and belongs to the caller.
+   buildQuiz() and showRite() both drive them, so the option loop exists once. */
+function renderChoice(card, item, onDone){
+  const view = shuffleOpts(item);
+  view.opts.forEach((text, oi) => {
+    const b = document.createElement('button'); b.className='opt'; b.textContent = text;
+    b.onclick = () => {
+      card.querySelectorAll('.opt').forEach(x => x.disabled = true);
+      const btns = card.querySelectorAll('.opt');
+      const right = oi === view.correct;
+      if(right) b.classList.add('correct');
+      else { b.classList.add('wrong'); btns[view.correct].classList.add('correct'); }
+      onDone(right);
+    };
+    card.appendChild(b);
+  });
+}
+
 /* Tap the beats into their true order. Each tap fixes the next position; when all
    four are placed, the omen resolves. Correct iff the tapped order equals item.answer. */
 function renderSequence(card, item, onDone){
@@ -1398,22 +1432,40 @@ with:
     h += `<div class="tally" id="tally">${d.quiz.length} omens to read · none yet turned</div><div id="quiz"></div>`;
 ```
 
-- [ ] **Step 4: Fray it on each miss**
+- [ ] **Step 4: Drive `buildQuiz` through the shared renderer, and fray on each miss**
 
-In `buildQuiz`, inside the option `onclick` handler, replace:
+`buildQuiz` currently inlines its own option loop. Move it onto `renderChoice` so the loop exists once, and fray the thread on a miss. In `app/index.html`, inside `buildQuiz`'s `Q.forEach((item,qi)=>{...})` body, replace the whole block from `const view=shuffleOpts(item);` through the closing `});` of the `view.opts.forEach(...)` call:
 
 ```js
+    const view=shuffleOpts(item);
+    view.opts.forEach((text,oi)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+      b.onclick=()=>{
+        card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        const btns=card.querySelectorAll('.opt');
+        if(oi===view.correct){ b.classList.add('correct'); score++; stats[k].c++; }
         else{ b.classList.add('wrong'); btns[view.correct].classList.add('correct'); missArr.push(qi); }
+        truth.classList.add('show'); answered++;
+        document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
+        if(answered===Q.length) reveal(score, Q.length, stats, missArr);
+      };
+      card.appendChild(b);
+    });
 ```
 
 with:
 
 ```js
-        else{
-          b.classList.add('wrong'); btns[view.correct].classList.add('correct'); missArr.push(qi);
-          frayThread(missArr.length, Q.length);
-        }
+    renderChoice(card, item, right => {
+      if(right){ score++; stats[k].c++; }
+      else { missArr.push(qi); frayThread(missArr.length, Q.length); }
+      truth.classList.add('show'); answered++;
+      document.getElementById('tally').textContent=`Omens read · ${answered} of ${Q.length}`;
+      if(answered===Q.length) reveal(score, Q.length, stats, missArr);
+    });
 ```
+
+Leave `buildQuiz`'s completed-view branch (the pre-answered reconstruction for a read book with a perfect score) untouched — it renders no live options and has nothing to fray.
 
 - [ ] **Step 5: Mend the thread on a retake**
 
@@ -1460,8 +1512,10 @@ The Rite is separate practice: unlimited, optional, and it **never** calls `reco
 - Modify: `app/index.html` — `showHome()` action buttons (line 283), and a new `showRite()` near `showReview()`.
 
 **Interfaces:**
-- Consumes: `LOOM_OMENS.dailyRite`, `label`, `renderThread`, `frayThread`, `renderSequence`, `shuffleOpts`.
-- Produces: `showRite()`.
+- Consumes: `LOOM_OMENS.dailyRite`, `label`, `renderThread`, `frayThread`, `formatOf`, `renderChoice`, `renderSequence` (all from Task 10).
+- Produces: `showRite()`, `readBooks()`.
+
+Do **not** re-inline an option-rendering loop here. Task 10 extracted `renderChoice` precisely so this view and `buildQuiz` share one copy.
 
 - [ ] **Step 1: Add the view**
 
@@ -1515,24 +1569,8 @@ function showRite(){
                      `<div class="qt">${item.q}</div>`;
     const truth = document.createElement('div'); truth.className='truth'; truth.innerHTML = item.truth;
 
-    if(formatOf(item) === 'sequence'){
-      renderSequence(card, item, right => { truth.classList.add('show'); finish(right); });
-    }else{
-      const view = shuffleOpts(item);
-      view.opts.forEach((text, oi) => {
-        const b = document.createElement('button'); b.className='opt'; b.textContent = text;
-        b.onclick = () => {
-          card.querySelectorAll('.opt').forEach(x => x.disabled = true);
-          const btns = card.querySelectorAll('.opt');
-          const right = oi === view.correct;
-          if(right) b.classList.add('correct');
-          else { b.classList.add('wrong'); btns[view.correct].classList.add('correct'); }
-          truth.classList.add('show');
-          finish(right);
-        };
-        card.appendChild(b);
-      });
-    }
+    const render = formatOf(item) === 'sequence' ? renderSequence : renderChoice;
+    render(card, item, right => { truth.classList.add('show'); finish(right); });
     card.appendChild(truth); quiz.appendChild(card);
   });
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1592,8 +1630,10 @@ git commit -m "feat(rite): the Daily Rite — practice that never spins the thre
 
 - [ ] **Step 1: Run the whole test suite**
 
-Run: `node --test test/`
-Expected: PASS — `# pass 38`, `# fail 0` (10 clock + 28 omens).
+Run: `node --test test/*.test.js`
+Expected: PASS — `# pass 43`, `# fail 0` (12 clock + 31 omens).
+
+**Do not run `node --test test/`.** Node 22 resolves a bare directory as a *module path*, not a glob, and fails with `Cannot find module '.../test'` — a failure that looks like a broken suite but is a broken command. Either pass the glob (`test/*.test.js`) or run bare `node --test`, which uses Node's default test discovery.
 
 - [ ] **Step 2: Rebuild and check the bundler's own sanity output**
 
@@ -1617,19 +1657,22 @@ window.__loomVolatile = true; showHome();
 ```
 Expected: the streak line disappears and is replaced by "This copy cannot keep a streak…". The day's measure still renders. Reload to restore.
 
-- [ ] **Step 5: Deploy**
+- [ ] **Step 5: Refresh the deploy bundle on the branch**
+
+`index.html` (repo root, committed) is the byte-identical copy GitHub Pages serves. Rebuild it so the branch carries the deployable artifact:
 
 ```bash
 cp the-muses-odyssey.html index.html
 git add index.html
-git commit -m "build: deploy the Daily Rite and derived omens"
-git push origin main
+git commit -m "build: refresh the deploy bundle with the Daily Rite"
 ```
 
-- [ ] **Step 6: Confirm the deploy**
+- [ ] **Step 6: Confirm the tree is clean and the bundle matches**
 
-Run: `git log --oneline -1 && git status --short`
-Expected: the deploy commit is HEAD and the working tree is clean. GitHub Pages redeploys on push to `main`.
+Run: `git status --short && diff <(cat the-muses-odyssey.html) index.html && echo "bundle == deploy copy"`
+Expected: no output from `git status --short`, and `bundle == deploy copy`.
+
+**Do not push to `main` and do not open the PR here.** The controller opens the PR after the final whole-branch review, per `superpowers:finishing-a-development-branch`. Pages redeploys when the PR merges to `main`.
 
 ---
 

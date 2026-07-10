@@ -149,7 +149,8 @@ The 0.7 is not new. It is the existing verdict tier where *"the thread holds bri
 (`app/index.html:735`). Reusing it means the goal and the Fates agree on what passing means.
 
 Default goal: **1 book/day**, edited inline. Ten books are authored, four are read, six remain —
-and July 15 is six days from July 9. The default is the number the loom is already holding.
+and the July 28 book club is nineteen days from July 9. The default is still the number the
+loom is already holding.
 
 ### 5.3 The Daily Rite
 
@@ -159,11 +160,11 @@ passing its omens completes a day. This keeps the streak tied to actually readin
 
 ### 5.4 Atropos, softly
 
-The deadline renders as context on the home hub — *"Atropos waits six days hence"* — never as a
-bar being failed.
+The deadline renders as context on the home hub — *"Atropos waits nineteen days hence"* on
+July 9, 2026 — never as a bar being failed.
 
 **Pace is computed over `authored ∧ unread`, not over 48.** A line reading "44 books remain,
-6 days" is a lie dressed as motivation: 38 of those books are unwritten. The denominator is
+19 days" is a lie dressed as motivation: 38 of those books are unwritten. The denominator is
 stated plainly in the copy, and self-corrects the moment Book 11 is authored.
 
 ### 5.5 Streak
@@ -182,7 +183,7 @@ Honest, no hidden grace, no mercy days.
 | Pool too thin (reader one book in) | Generators return `null`; the draw fills from what is available and renders fewer omens. |
 | A character becomes their own distractor | Distractors drawn by character, not by epithet pair. |
 | Band leak (mortal distractor for a god) | Distractors constrained to the prompt's band. |
-| July 15 passes | Deadline line hides. Never renders a negative countdown. |
+| July 28 passes | Deadline line hides. Never renders a negative countdown. |
 | Seeded books satisfying a day | Structural — `seedProgress()` never calls `dayLog`. |
 | Day rolls over mid-sitting | `todayKey()` sampled once, at `reveal()`. |
 

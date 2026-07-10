@@ -43,7 +43,7 @@ bundle matches the source.
 ## Voice — the Loom / the Oracle
 - Parchment register, lightly mythic, never purple. Georgia serif, wine + gold.
 - The three Fates frame the reading: Clotho sets the measure, Lachesis allots the
-  pages, Atropos waits at the theater door (the July 15 prescreening deadline).
+  pages, Atropos waits at the theater door (the July 28 book-club deadline).
 - The nightly quiz is "the Ninth Hour" / "the Oracle's Examination"; results are
   "the Fates' verdict." Keep that diction.
 - **Spoiler-aware, not spoiler-blind:** the reader has already read the earlier
