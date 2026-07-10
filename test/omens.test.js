@@ -119,3 +119,44 @@ test('shuffle is a permutation and is deterministic under a seeded rng', () => {
   assert.deepStrictEqual(a.slice().sort(), src);
   assert.deepStrictEqual(src, [1, 2, 3, 4, 5], 'shuffle must not mutate its input');
 });
+
+const LABEL = id => 'Iliad · Book ' + Number(id.split('-')[1]);
+
+test('epithetOmen returns null when no band has four distinct characters', () => {
+  const thin = [{ id: 'iliad-01', data: { characters: { 'Mortals': [
+    { name: 'Agamemnon', epithet: 'lord of men' },
+    { name: 'Nestor', epithet: 'old horseman of Pylos' }
+  ] } } }];
+  assert.strictEqual(omens.epithetOmen(omens.epithetPool(thin), { rng: seeded(1), label: LABEL }), null);
+});
+
+test('epithetOmen draws exactly four options, all distinct characters', () => {
+  const pool = omens.epithetPool(BOOKS);
+  for (let s = 1; s <= 40; s++) {
+    const o = omens.epithetOmen(pool, { rng: seeded(s), label: LABEL });
+    assert.ok(o, 'expected an omen for seed ' + s);
+    assert.strictEqual(o.opts.length, 4);
+    assert.strictEqual(new Set(o.opts).size, 4, 'a character must never be its own distractor');
+  }
+});
+
+test('epithetOmen keeps distractors inside the prompt\'s band', () => {
+  const pool = omens.epithetPool(BOOKS);
+  const gods = new Set(pool.gods.keys());
+  const mortals = new Set(pool.mortals.keys());
+  for (let s = 1; s <= 40; s++) {
+    const o = omens.epithetOmen(pool, { rng: seeded(s), label: LABEL });
+    const allGods = o.opts.every(n => gods.has(n));
+    const allMortals = o.opts.every(n => mortals.has(n));
+    assert.ok(allGods || allMortals, 'seed ' + s + ' mixed bands: ' + o.opts.join(', '));
+  }
+});
+
+test('epithetOmen marks the correct index and it names a real character', () => {
+  const pool = omens.epithetPool(BOOKS);
+  const o = omens.epithetOmen(pool, { rng: seeded(7), label: LABEL });
+  const answer = o.opts[o.correct];
+  assert.ok(pool.gods.has(answer) || pool.mortals.has(answer));
+  assert.ok(o.truth.includes(answer));
+  assert.strictEqual(o.format, 'choice');
+});

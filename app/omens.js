@@ -58,7 +58,32 @@
     return out;
   }
 
-  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool };
+  /* "Whose name does the Loom hide?" Distractors come from the SAME band, or the
+     word "goddess" alone eliminates three mortals. Drawn by character, so a
+     two-variant name like Athena can never appear twice. */
+  function epithetOmen(pool, opts) {
+    const rng = opts.rng, label = opts.label;
+    const bands = ['mortals', 'gods'].filter(b => pool[b].size >= 4);
+    if (!bands.length) return null;
+
+    const band = bands[Math.floor(rng() * bands.length)];
+    const names = shuffle(Array.from(pool[band].keys()), rng);
+    const answer = names[0];
+    const variants = pool[band].get(answer);
+    const chosen = variants[Math.floor(rng() * variants.length)];
+
+    const choices = shuffle([answer, names[1], names[2], names[3]], rng);
+    return {
+      format: 'choice',
+      kind: 'meaning',
+      q: 'Whose name does the Loom hide? <i>' + chosen.ep + '</i>',
+      opts: choices,
+      correct: choices.indexOf(answer),
+      truth: '<b>' + answer + '</b> — ' + chosen.ep + '. <span class="small">' + label(chosen.book) + '</span>'
+    };
+  }
+
+  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LOOM_OMENS = api;
 })(this);
