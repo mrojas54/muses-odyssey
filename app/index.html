@@ -233,6 +233,69 @@ const saveScore = (id,s) => { const b=bestScore(id); if(b==null||s>b) localStora
 const priorMiss = id => { try{ return JSON.parse(localStorage.getItem('loom.miss.'+id)||'[]'); }catch(e){ return []; } };
 const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringify(arr));
 
+/* ---- the day log: the first thing in the loom that knows what day it is ----
+   Written ONLY from toggleRead() and the per-book reveal(), both of which fire
+   only on a human action. seedProgress() writes read/best flags and never calls
+   recordDay(), so the four seeded books are an undated past: they count toward
+   lifetime totals and can never complete a day or begin a streak.
+
+   The Daily Rite and the Grand Examination must NOT call recordDay(). Only a
+   per-book sitting can advance a day. */
+const DEADLINE = '2026-07-28';
+const PASS_RATIO = 0.7;
+const dayKey = k => 'loom.day.' + k;
+
+function durable(){
+  if(typeof window !== 'undefined' && window.__loomVolatile) return false;
+  try{
+    localStorage.setItem('__loom_durable','1');
+    const ok = localStorage.getItem('__loom_durable')==='1';
+    localStorage.removeItem('__loom_durable');
+    return ok;
+  }catch(e){ return false; }
+}
+
+function dayEntry(k){
+  try{ return JSON.parse(localStorage.getItem(dayKey(k)) || '{"read":[],"sat":[]}'); }
+  catch(e){ return {read:[],sat:[]}; }
+}
+function goalBooks(){
+  try{ return (JSON.parse(localStorage.getItem('loom.goal')||'{}').books) || 1; }
+  catch(e){ return 1; }
+}
+function setGoalBooks(n){
+  try{ localStorage.setItem('loom.goal', JSON.stringify({books: Math.max(1, n|0)})); }catch(e){}
+}
+function readStreak(){
+  try{ return JSON.parse(localStorage.getItem('loom.streak')||'null'); }catch(e){ return null; }
+}
+
+function bookPasses(id){
+  const d = window.LOOM_DATA[id];
+  const total = (d && d.quiz) ? d.quiz.length : 0;
+  const best = bestScore(id);
+  return total > 0 && best != null && best >= PASS_RATIO * total;
+}
+
+function booksDoneOn(k){
+  const e = dayEntry(k);
+  const touched = {};
+  e.read.concat(e.sat).forEach(id => { touched[id] = true; });
+  return Object.keys(touched).filter(id => isRead(id) && bookPasses(id)).length;
+}
+const booksDoneToday = () => booksDoneOn(LOOM_CLOCK.todayKey());
+const dayComplete = k => booksDoneOn(k) >= goalBooks();
+
+function recordDay(kind, id){
+  const k = LOOM_CLOCK.todayKey();
+  const e = dayEntry(k);
+  if(e[kind].indexOf(id) < 0) e[kind].push(id);
+  try{ localStorage.setItem(dayKey(k), JSON.stringify(e)); }catch(err){}
+  if(dayComplete(k)){
+    try{ localStorage.setItem('loom.streak', JSON.stringify(LOOM_CLOCK.streakNext(readStreak(), k))); }catch(err){}
+  }
+}
+
 /* ---- authored progress seed ----
    No cross-device sync (that work is deferred — see
    docs/superpowers/plans/2026-07-06-future-user-auth-fastapi.md). Instead we bake
@@ -572,7 +635,12 @@ function topbar(id){
     `</div>`;
 }
 
-function toggleRead(id){ setRead(id, !isRead(id)); topbar(id); }
+function toggleRead(id){
+  const now = !isRead(id);
+  setRead(id, now);
+  if(now) recordDay('read', id);
+  topbar(id);
+}
 
 function showBook(id){
   if(!authored(id)) return;
@@ -730,6 +798,7 @@ function retakeQuiz(){
 function reveal(score,total,stats,missArr){
   saveScore(current,score);
   saveMiss(current, missArr.slice().sort((a,b)=>a-b));
+  recordDay('sat', current);
   const v=document.getElementById('verdict');
   document.getElementById('scoreNum').textContent=`${score} / ${total}`;
   const pct=score/total; let line;
