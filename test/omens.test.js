@@ -73,6 +73,14 @@ test('isKinshipEpithet matches a possessive written with a typographic apostroph
   assert.strictEqual(omens.isKinshipEpithet('goddess of desire, Paris’s patron'), false);
 });
 
+test('isKinshipEpithet does not match a word merely starting with a kinship token', () => {
+  assert.strictEqual(omens.isKinshipEpithet("Penelope's motherland"), false);
+  assert.strictEqual(omens.isKinshipEpithet("Zeus' brotherhood with Poseidon"), false);
+  assert.strictEqual(omens.isKinshipEpithet('Hector’s fatherland'), false);
+  assert.strictEqual(omens.isKinshipEpithet("Achilles' foster-father"), true);
+  assert.strictEqual(omens.isKinshipEpithet('Peleus’s son'), true);
+});
+
 test('bandOf routes by group name and by the god flag', () => {
   assert.strictEqual(omens.bandOf('Gods & Powers', { name: 'Athena' }), 'gods');
   assert.strictEqual(omens.bandOf('Mortals', { name: 'Ajax' }), 'mortals');

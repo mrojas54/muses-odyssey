@@ -20,7 +20,7 @@
   const KIN = "(?:foster-|step-|half-|grand|great-grand)?(?:son|daughter|father|mother|brother|sister)|wife|husband";
   const KINSHIP = new RegExp(
     "\\b(?:" + KIN + ")\\s+of\\s+[A-Z]" +
-    "|[A-Z][\\p{L}]*(?:['’']s|['’'])\\s+(?:" + KIN + ")",
+    "|[A-Z][\\p{L}]*(?:['’']s|['’'])\\s+(?:" + KIN + ")\\b",
     "u"
   );
   const isKinshipEpithet = ep => KINSHIP.test(ep || '');
