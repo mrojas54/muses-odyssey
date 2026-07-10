@@ -4116,17 +4116,28 @@ const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringif
    No cross-device sync (that work is deferred — see
    docs/superpowers/plans/2026-07-06-future-user-auth-fastapi.md). Instead we bake
    baseline progress into the app so books already read + quizzed show as done on
-   every device. Each key is written ONLY if unset, so a real score you earn later
-   is never overwritten, and books added here later still seed on their next load.
+   every device. Completion migrations run once per browser, so they can mark the
+   current reading milestone without overriding future local choices on reload.
    Maintain by hand, deep-dive style: finish a book, add `id: <omen count>` below
    and redeploy. Score = the book's omen count (a perfect sitting). */
 (function seedProgress(){
-  const SEED = { 'iliad-01':6, 'iliad-02':6, 'iliad-03':6, 'iliad-04':6 };   // id → best score (= perfect)
+  const SEED = {
+    'iliad-01':6, 'iliad-02':6, 'iliad-03':6, 'iliad-04':6,
+    'iliad-05':6, 'iliad-06':6, 'iliad-07':6, 'iliad-08':6,
+    'iliad-09':6, 'iliad-10':6, 'iliad-11':4, 'iliad-12':4,
+    'iliad-13':4, 'iliad-14':4, 'iliad-15':4, 'iliad-16':4,
+    'iliad-17':4, 'iliad-18':4, 'iliad-19':4, 'iliad-20':4,
+    'iliad-21':4, 'iliad-22':4, 'iliad-23':4, 'iliad-24':4
+  };   // id → best score (= perfect)
+  const migration = 'loom.seed.iliad-24-complete.v1';
   try {
+    const shouldComplete = localStorage.getItem(migration)==null;
     for(const id in SEED){
-      if(localStorage.getItem('loom.read.'+id)==null) localStorage.setItem('loom.read.'+id,'1');
-      if(localStorage.getItem('loom.best.'+id)==null) localStorage.setItem('loom.best.'+id, String(SEED[id]));
+      if(shouldComplete || localStorage.getItem('loom.read.'+id)==null) localStorage.setItem('loom.read.'+id,'1');
+      if(shouldComplete || localStorage.getItem('loom.best.'+id)==null || +localStorage.getItem('loom.best.'+id) < SEED[id]) localStorage.setItem('loom.best.'+id, String(SEED[id]));
+      if(shouldComplete || localStorage.getItem('loom.miss.'+id)!=null) localStorage.removeItem('loom.miss.'+id);
     }
+    if(shouldComplete) localStorage.setItem(migration,'1');
   } catch(e){ /* locked-down origin (raw file://): harness shim covers the bundle */ }
 })();
 const clearMiss = (id,qi) => saveMiss(id, priorMiss(id).filter(x=>x!==qi));
