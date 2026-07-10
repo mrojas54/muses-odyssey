@@ -83,7 +83,49 @@
     };
   }
 
-  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen };
+  /* movements[] is already an ordered list of self-contained beats, so it is a
+     question bank with its answer key built in. Titles are deduped defensively:
+     findIndex below assumes they are unique. */
+  function sequenceOmen(book, rng) {
+    const mv = (book.data && book.data.movements) || [];
+    const seen = new Set();
+    const uniq = [];
+    mv.forEach((m, i) => {
+      if (m && m.title && !seen.has(m.title)) {
+        seen.add(m.title);
+        uniq.push({ i, title: m.title });
+      }
+    });
+    if (uniq.length < 4) return null;
+
+    const spread = [];
+    for (let a = 0; a < uniq.length; a++) {
+      for (let b = a + 2; b < uniq.length; b++) {
+        for (let c = b + 2; c < uniq.length; c++) {
+          for (let d = c + 2; d < uniq.length; d++) {
+            spread.push([uniq[a], uniq[b], uniq[c], uniq[d]]);
+          }
+        }
+      }
+    }
+    const picked = spread.length
+      ? spread[Math.floor(rng() * spread.length)]
+      : shuffle(uniq, rng).slice(0, 4);
+    const items = shuffle(picked, rng);
+    const trueOrder = picked.slice().sort((a, b) => a.i - b.i);
+    const answer = trueOrder.map(t => items.findIndex(x => x.i === t.i));
+
+    return {
+      format: 'sequence',
+      kind: 'event',
+      q: 'The Loom shows four beats. Set them in their true order.',
+      items: items.map(x => x.title),
+      answer: answer,
+      truth: trueOrder.map((t, k) => (k + 1) + '. ' + t.title).join('<br>')
+    };
+  }
+
+  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen, sequenceOmen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LOOM_OMENS = api;
 })(this);

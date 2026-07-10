@@ -160,3 +160,56 @@ test('epithetOmen marks the correct index and it names a real character', () => 
   assert.ok(o.truth.includes(answer));
   assert.strictEqual(o.format, 'choice');
 });
+
+const SEQ_BOOK = { id: 'iliad-01', data: { movements: [
+  { n: 'Movement I', title: 'The priest comes with ransom' },
+  { n: 'Movement II', title: 'Apollo\'s arrows fall' },
+  { n: 'Movement III', title: 'The quarrel in the assembly' },
+  { n: 'Movement IV', title: 'Briseis is taken' },
+  { n: 'Movement V', title: 'Achilles calls his mother from the sea' },
+  { n: 'Movement VI', title: 'Thetis petitions Zeus' }
+] } };
+
+test('sequenceOmen returns null with fewer than four movements', () => {
+  const thin = { id: 'x', data: { movements: SEQ_BOOK.data.movements.slice(0, 3) } };
+  assert.strictEqual(omens.sequenceOmen(thin, seeded(1)), null);
+});
+
+test('sequenceOmen presents four distinct beats', () => {
+  const o = omens.sequenceOmen(SEQ_BOOK, seeded(3));
+  assert.strictEqual(o.format, 'sequence');
+  assert.strictEqual(o.items.length, 4);
+  assert.strictEqual(new Set(o.items).size, 4);
+});
+
+test('sequenceOmen answer indices reconstruct true reading order', () => {
+  const order = SEQ_BOOK.data.movements.map(m => m.title);
+  for (let s = 1; s <= 40; s++) {
+    const o = omens.sequenceOmen(SEQ_BOOK, seeded(s));
+    assert.strictEqual(o.answer.length, 4);
+    assert.strictEqual(new Set(o.answer).size, 4, 'answer must be a permutation');
+    const restored = o.answer.map(i => o.items[i]);
+    const sorted = restored.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    assert.deepStrictEqual(restored, sorted, 'seed ' + s + ' produced a wrong answer key');
+  }
+});
+
+test('sequenceOmen prefers non-contiguous beats when the book can support them', () => {
+  const spreadBook = { id: 'iliad-08', data: { movements: Array.from({ length: 8 }, (_, i) => ({
+    n: 'Movement ' + (i + 1),
+    title: 'Beat ' + (i + 1)
+  })) } };
+  for (let s = 1; s <= 40; s++) {
+    const o = omens.sequenceOmen(spreadBook, seeded(s));
+    const indexes = o.answer.map(i => Number(o.items[i].replace('Beat ', '')) - 1);
+    for (let i = 1; i < indexes.length; i++) {
+      assert.ok(indexes[i] - indexes[i - 1] > 1, 'seed ' + s + ' drew adjacent beats');
+    }
+  }
+});
+
+test('sequenceOmen truth lists the beats in order', () => {
+  const o = omens.sequenceOmen(SEQ_BOOK, seeded(9));
+  const first = o.items[o.answer[0]];
+  assert.ok(o.truth.startsWith('1. ' + first));
+});
