@@ -12,7 +12,7 @@
 
 ## 1. Problem & context
 
-The reading plan (the Loom) runs both epics — 48 books — against a hard date: the *Antimetal Presents: The Odyssey* prescreening, **Wed July 15, 7:30 PM**. Pages can be turned on schedule and still not *land* — the failure mode is comprehension, not count (the Oracle's own verdict on a 0-score night: "the thread frays at the meaning, not the count"). Loose per-book HTML files were proving the concept but don't scale to 48 books or accumulate any memory of what was understood.
+The reading plan (the Loom) runs both epics — 48 books — toward the book-club finish, **Tuesday, July 28, 2026**. Pages can be turned on schedule and still not *land* — the failure mode is comprehension, not count (the Oracle's own verdict on a 0-score night: "the thread frays at the meaning, not the count"). Loose per-book HTML files were proving the concept but don't scale to 48 books or accumulate any memory of what was understood.
 
 **The job to be done:** after reading a book, quickly (a) re-anchor the major beats (the *events*) and why they matter, (b) meet the cast (the *characters*), and (c) test comprehension — not just *what happened* but *why it matters* and *how it ties to what came before* — with the app remembering performance so weak spots resurface.
 
@@ -48,7 +48,7 @@ Secondary loop, later: → open the app → review books with low or stale score
 1. **Content scales by data, not code.** The renderer is fixed; books are JSON-shaped `.js` files.
 2. **Honest over ornamental.** The house voice (the "Loom" register — the Fates at their weaving) is mythic but never fabricates fact; uncertain claims say so (e.g. *Iliad* names Troy, it does not mean "wound").
 3. **Teach in the answer.** Every quiz "truth" explains, it doesn't just confirm.
-4. **The deadline sets priority.** Coverage of all 48 books before July 15 outranks feature richness. Features earn their place only if they don't slow authoring.
+4. **The deadline sets priority.** Coverage of all 48 books before July 28 outranks feature richness. Features earn their place only if they don't slow authoring.
 5. **No surprises at open.** Works on `file://`; nothing depends on network or install.
 
 ## 5. The comprehension model (what "test reading comprehension" means here)
@@ -67,7 +67,7 @@ After a sit, the verdict shows the **breakdown** (e.g. *Events 3/3 · Why it mat
 
 ## 6. Scope
 
-### P0 — must exist before the doors open (July 15)
+### P0 — must exist before the book-club finish (July 28)
 - **Engine** (done, built out): data-driven renderer, manifest, `file://`-safe `<script>` data loading; on-screen masthead.
 - **Typed examinations** (done, v1.3): `event` / `meaning` / `thread` omens with a per-layer verdict breakdown and missed-omen memory.
 - **Cross-book threads** (done, v1.3): per-book thread cards + a global Woven Threads view; walkable links between books.

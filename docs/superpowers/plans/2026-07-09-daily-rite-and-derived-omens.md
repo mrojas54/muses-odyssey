@@ -16,7 +16,7 @@
 - **Spoiler gate:** every derived omen draws only from books where `isRead(id)` is true. Same rule as `collectCast()` (`app/index.html:360`).
 - **No timer. No fail state.** The fraying thread is a barometer; nothing locks or resets.
 - **Pass threshold is `0.7`**, reusing the existing verdict tier at `app/index.html:735`. Do not invent a new number.
-- **Deadline constant:** `'2026-07-15'`. When it has passed, the Atropos line hides — never render a negative countdown.
+- **Deadline constant:** `'2026-07-28'`. When it has passed, the Atropos line hides — never render a negative countdown.
 - **Voice:** parchment register, wine + gold. Quotation marks are reserved for verbatim Fagles. Do not wrap paraphrase in quotes.
 - **Deploy is:** `node build-single-file.js && cp the-muses-odyssey.html index.html`, then commit and push `main`.
 
@@ -93,11 +93,11 @@ test('streakNext resets to 1 after a missed day', () => {
 });
 
 test('daysUntil counts forward to the deadline', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-09'), 6);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-09'), 19);
 });
 
 test('daysUntil is negative once the door has passed', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-16'), -1);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-29'), -1);
 });
 ```
 
@@ -1061,7 +1061,7 @@ In `app/index.html`, immediately after the `saveMiss` line (currently line 232),
 
    The Daily Rite and the Grand Examination must NOT call recordDay(). Only a
    per-book sitting can advance a day. */
-const DEADLINE = '2026-07-15';
+const DEADLINE = '2026-07-28';
 const PASS_RATIO = 0.7;                 // the "thread holds bright" tier, reused
 const dayKey = k => 'loom.day.' + k;
 
@@ -1286,12 +1286,12 @@ node build-single-file.js
 Load the c11-browser skill and open `the-muses-odyssey.html`. Confirm on the home screen:
 - "The day's measure" card shows `0 of 1 books today`.
 - The `–` / `+` buttons change the goal and the card re-renders.
-- The Atropos line reads `Atropos waits 6 days hence · 6 books on the loom, unread` (on 2026-07-09).
+- The Atropos line reads `Atropos waits 19 days hence · 6 books on the loom, unread` (on 2026-07-09).
 - A streak line appears (storage is durable when served over `http`/`file` with a real origin).
 
 - [ ] **Step 5: Verify the deadline expires cleanly**
 
-In the browser console, run `LOOM_CLOCK.daysUntil('2026-07-15','2026-07-16')`.
+In the browser console, run `LOOM_CLOCK.daysUntil('2026-07-28','2026-07-29')`.
 Expected: `-1`. Confirm `riteCard()` renders no door line for a non-positive value (the `days > 0` guard).
 
 - [ ] **Step 6: Commit**

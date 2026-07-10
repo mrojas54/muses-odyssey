@@ -43,11 +43,11 @@ test('streakNext resets to 1 after a missed day', () => {
 });
 
 test('daysUntil counts forward to the deadline', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-09'), 6);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-09'), 19);
 });
 
 test('daysUntil is negative once the door has passed', () => {
-  assert.strictEqual(clock.daysUntil('2026-07-15', '2026-07-16'), -1);
+  assert.strictEqual(clock.daysUntil('2026-07-28', '2026-07-29'), -1);
 });
 
 test('daysUntil absorbs a 23-hour spring-forward day', () => {
