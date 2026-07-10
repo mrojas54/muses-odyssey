@@ -269,10 +269,10 @@ const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringif
 /* ---- the day log: the first thing in the loom that knows what day it is ----
    Written ONLY from toggleRead() and the per-book reveal(), both of which fire
    only on a human action. seedProgress() writes read/best flags and never calls
-   recordDay(), so the four seeded books are an undated past: they count toward
+   the day recorder, so the four seeded books are an undated past: they count toward
    lifetime totals and can never complete a day or begin a streak.
 
-   The Daily Rite and the Grand Examination must NOT call recordDay(). Only a
+   The Daily Rite and the Grand Examination must NOT write this log. Only a
    per-book sitting can advance a day. */
 const DEADLINE = '2026-07-28';
 const PASS_RATIO = 0.7;
@@ -417,6 +417,7 @@ function showHome(){
   h += riteCard();
   if(examCount || threadCount || missCount || castN){
     h += `<div class="homeacts">`;
+    if(readAll)     h += `<button onclick="showRite()">☼ The Daily Rite (practice) →</button>`;
     if(examCount)   h += `<button onclick="showExam()">◈ The Grand Examination (${examCount}) →</button>`;
     if(castN)       h += `<button onclick="showRoster()">☙ The players (${castN}) →</button>`;
     if(threadCount) h += `<button onclick="showThreads()">✦ The woven threads (${threadCount}) →</button>`;
@@ -441,6 +442,64 @@ function showHome(){
   });
   document.getElementById('view').innerHTML = h;
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- THE DAILY RITE (practice; never spins the thread) ----
+   Drawn only from read books: an epithet question can reveal a name as surely as
+   a roster card. Deliberately does not write the day log. */
+function readBooks(){
+  return ORDER.filter(id => authored(id) && isRead(id))
+              .map(id => ({ id, data: window.LOOM_DATA[id] }));
+}
+
+function showRite(){
+  current = null;
+  localStorage.removeItem('loom.last');
+  document.getElementById('topbar').innerHTML =
+    `<div class="grp"><button onclick="showHome()">✦ All Books</button>`+
+      `<button onclick="showRoster()">Players</button>`+
+      `<button onclick="showThreads()">Threads</button>`+
+      `<button onclick="showExam()">Examination</button></div>`+
+    `<div class="grp"><button class="active" disabled>The Daily Rite</button></div>`;
+
+  const books = readBooks();
+  const draw = window.LOOM_OMENS.dailyRite(books, { n:5, rng:Math.random, label });
+
+  let h = `<div class="crown">◈ The Loom offers practice ◈</div><h1>The Daily Rite</h1>`;
+  if(!draw.length){
+    h += `<div class="priorscore">Mark a book read and the Loom will draw from it.</div>`;
+    h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button></div>`;
+    document.getElementById('view').innerHTML = h;
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+  h += `<div class="sub">${draw.length} omens · practice only · the thread is not spun here</div>`;
+  h += renderThread(draw.length);
+  h += `<div class="tally" id="tally">${draw.length} omens to read · none yet turned</div><div id="quiz"></div>`;
+  h += `<div class="homeacts"><button onclick="showRite()">Draw again</button></div>`;
+  h += `<div class="footnav"><button onclick="showHome()">✦ All Books</button><button onclick="showThreads()">Threads</button><button onclick="showReview()">Review</button></div>`;
+  document.getElementById('view').innerHTML = h;
+
+  const quiz = document.getElementById('quiz');
+  let answered = 0, missed = 0;
+  const finish = right => {
+    if(!right){ missed++; frayThread(missed, draw.length); }
+    answered++;
+    document.getElementById('tally').textContent = `Omens read · ${answered} of ${draw.length}`;
+  };
+
+  draw.forEach(item => {
+    const card = document.createElement('div'); card.className='q';
+    const ki = KIND[item.kind] || KIND.event;
+    card.innerHTML = `<div class="qhead"><span class="qkind ${ki.cls}">${ki.label}</span></div>`+
+                     `<div class="qt">${item.q}</div>`;
+    const truth = document.createElement('div'); truth.className='truth'; truth.innerHTML = item.truth;
+
+    const render = formatOf(item) === 'sequence' ? renderSequence : renderChoice;
+    render(card, item, right => { truth.classList.add('show'); finish(right); });
+    card.appendChild(truth); quiz.appendChild(card);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 /* ---- THREADS (cross-book view) ---- */
