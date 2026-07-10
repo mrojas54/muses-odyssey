@@ -10,7 +10,8 @@ window.LOOM_DATA["odyssey-01"] = {
     tagline: "Scene · seven movements · invocation, Olympus, Ithaca, Mentes, Penelope, assembly · then the Ninth Hour",
     epigraph: {
       text: "Sing to me of the man, Muse...",
-      src: "Fagles, Odyssey 1.1 - the poem opens by asking the Muse for the man whose homecoming will take many turns."
+      src: "Fagles, Odyssey 1.1 - the poem opens by asking the Muse for the man whose homecoming will take many turns.",
+      verbatim: true
     }
   },
 

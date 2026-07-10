@@ -10,7 +10,8 @@ window.LOOM_DATA["iliad-02"] = {
     tagline: "Scene · nine movements · the Catalogue at the close · then the Ninth Hour",
     epigraph: {
       text: "\"Now the great array of gods and chariot-driven men slept all night long, but the peaceful grip of sleep could not hold Zeus…\"",
-      src: "Fagles, Iliad 2.1–2 — the book opens on the one mind awake on Olympus"
+      src: "Fagles, Iliad 2.1–2 — the book opens on the one mind awake on Olympus",
+      verbatim: true
     }
   },
 

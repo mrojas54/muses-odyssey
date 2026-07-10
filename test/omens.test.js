@@ -208,13 +208,29 @@ test('sequenceOmen prefers non-contiguous beats when the book can support them',
   }
 });
 
+test('sequenceOmen falls back to varied draws when strict spread has too few choices', () => {
+  const sevenBeatBook = { id: 'iliad-10', data: { movements: Array.from({ length: 7 }, (_, i) => ({
+    n: 'Movement ' + (i + 1),
+    title: 'Beat ' + (i + 1)
+  })) } };
+  const draws = new Set();
+  for (let s = 1; s <= 20; s++) {
+    const o = omens.sequenceOmen(sevenBeatBook, seeded(s));
+    draws.add(o.answer.map(i => o.items[i]).join('|'));
+  }
+  assert.ok(draws.size > 1, 'seven-beat books must not always draw the same sequence');
+});
+
 test('sequenceOmen truth lists the beats in order', () => {
   const o = omens.sequenceOmen(SEQ_BOOK, seeded(9));
   const first = o.items[o.answer[0]];
   assert.ok(o.truth.startsWith('1. ' + first));
 });
 
-const EPI = (id, text) => ({ id, data: { meta: { epigraph: { text, src: 'Fagles, Iliad ' + id } } } });
+const EPI = (id, text, extra) => ({
+  id,
+  data: { meta: { epigraph: Object.assign({ text, src: 'Fagles, Iliad ' + id, verbatim: true }, extra || {}) } }
+});
 const EPI_BOOKS = [
   EPI('iliad-01', '"Rage—Goddess, sing the rage of Peleus\' son Achilles, murderous, doomed, that cost the Achaeans countless losses…"'),
   EPI('iliad-02', 'Now the great array of chariot-driven fighters slept the whole night through, peaceful.'),
@@ -228,6 +244,35 @@ test('lineOmen blanks a word and offers four options', () => {
   assert.strictEqual(o.format, 'choice');
   assert.strictEqual(o.opts.length, 4);
   assert.ok(o.q.includes('____'), 'the line must show a blank');
+});
+
+test('lineOmen uses the Fagles prompt only for verbatim epigraphs', () => {
+  const paraphrase = EPI(
+    'iliad-06',
+    'Like the generations of leaves, so are the generations of men.',
+    {
+      src: 'after Fagles, Iliad 6.171-176. Paraphrase; not a verified quotation.',
+      verbatim: false
+    }
+  );
+  const o = omens.lineOmen(paraphrase, EPI_BOOKS.concat([paraphrase]), seeded(1));
+  assert.ok(o, 'expected a paraphrase omen');
+  assert.ok(!o.q.includes('Fagles wrote it thus'));
+  assert.ok(o.q.includes('The Loom recalls the line'));
+  assert.ok(o.truth.includes('after Fagles'));
+});
+
+test('lineOmen treats missing verbatim flags as paraphrase-safe by default', () => {
+  const unmarked = {
+    id: 'iliad-07',
+    data: { meta: { epigraph: {
+      text: 'Hector raises a gift in the sight of both armies.',
+      src: 'after Fagles, Iliad 7. Paraphrase; not a verified quotation.'
+    } } }
+  };
+  const o = omens.lineOmen(unmarked, EPI_BOOKS.concat([unmarked]), seeded(2));
+  assert.ok(o, 'expected an unmarked epigraph omen');
+  assert.ok(!o.q.includes('Fagles wrote it thus'));
 });
 
 test('lineOmen never mangles a token joined by an em-dash', () => {
@@ -248,6 +293,34 @@ test('lineOmen preserves Fagles verbatim apart from the single blank', () => {
     const answer = o.opts[o.correct];
     assert.strictEqual(line.replace('____', answer), src, 'seed ' + s + ' altered the epigraph');
     assert.ok(line.includes('Rage—Goddess') || line.includes('____'), 'em-dash must survive');
+  }
+});
+
+test('lineOmen does not blank a repeated word that remains visible elsewhere', () => {
+  const repeated = EPI(
+    'iliad-06',
+    'Like the generations of leaves, so are the generations of men. The wind scatters the leaves.',
+    { src: 'after Fagles, Iliad 6.171-176. Paraphrase; not a verified quotation.', verbatim: false }
+  );
+  for (let s = 1; s <= 30; s++) {
+    const o = omens.lineOmen(repeated, EPI_BOOKS.concat([repeated]), seeded(s));
+    const answer = o.opts[o.correct];
+    assert.notStrictEqual(answer.toLowerCase(), 'generations');
+    assert.notStrictEqual(answer.toLowerCase(), 'leaves');
+  }
+});
+
+test('lineOmen does not leave the answer visible as a substring', () => {
+  const substring = EPI(
+    'iliad-06',
+    'The wind scatters the leaves on the ground. So one generation of men will grow while another dies.',
+    { src: 'after Fagles, Iliad 6.171-176. Paraphrase; not a verified quotation.', verbatim: false }
+  );
+  for (let s = 1; s <= 30; s++) {
+    const o = omens.lineOmen(substring, EPI_BOOKS.concat([substring]), seeded(s));
+    const line = o.q.split('<i>')[1].replace('</i>', '').toLowerCase();
+    const answer = o.opts[o.correct].toLowerCase();
+    assert.ok(!line.includes(answer), 'answer "' + answer + '" remained visible in ' + line);
   }
 });
 
@@ -316,4 +389,10 @@ test('dailyRite degrades gracefully for a reader one book in', () => {
   const r = omens.dailyRite(one, { n: 5, rng: seeded(6), label: LABEL });
   assert.ok(r.length >= 1 && r.length <= 5);
   assert.ok(r.every(Boolean), 'a thin pool must drop omens, never emit null');
+});
+
+test('dailyRite ignores books without a data object', () => {
+  const r = omens.dailyRite([{ id: 'missing' }].concat(RITE_BOOKS), { n: 5, rng: seeded(8), label: LABEL });
+  assert.strictEqual(r.length, 5);
+  assert.ok(r.every(Boolean));
 });
