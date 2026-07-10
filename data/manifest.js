@@ -23,5 +23,6 @@ window.LOOM_BOOKS = [
   "iliad-21",
   "iliad-22",
   "iliad-23",
-  "iliad-24"
+  "iliad-24",
+  "odyssey-01"
 ];
