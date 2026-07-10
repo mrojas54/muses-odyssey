@@ -213,3 +213,67 @@ test('sequenceOmen truth lists the beats in order', () => {
   const first = o.items[o.answer[0]];
   assert.ok(o.truth.startsWith('1. ' + first));
 });
+
+const EPI = (id, text) => ({ id, data: { meta: { epigraph: { text, src: 'Fagles, Iliad ' + id } } } });
+const EPI_BOOKS = [
+  EPI('iliad-01', '"Rage—Goddess, sing the rage of Peleus\' son Achilles, murderous, doomed, that cost the Achaeans countless losses…"'),
+  EPI('iliad-02', 'Now the great array of chariot-driven fighters slept the whole night through, peaceful.'),
+  EPI('iliad-03', 'The Trojans came with clamor like birds, the Achaeans in silence, breathing fury.'),
+  EPI('iliad-04', 'Across the golden floor they poured the nectar, lifted their goblets.')
+];
+
+test('lineOmen blanks a word and offers four options', () => {
+  const o = omens.lineOmen(EPI_BOOKS[0], EPI_BOOKS, seeded(5));
+  assert.ok(o, 'expected an omen');
+  assert.strictEqual(o.format, 'choice');
+  assert.strictEqual(o.opts.length, 4);
+  assert.ok(o.q.includes('____'), 'the line must show a blank');
+});
+
+test('lineOmen never mangles a token joined by an em-dash', () => {
+  // "Rage—Goddess" must tokenize to Rage and Goddess, never RageGoddess.
+  for (let s = 1; s <= 30; s++) {
+    const o = omens.lineOmen(EPI_BOOKS[0], EPI_BOOKS, seeded(s));
+    assert.ok(!o.opts.includes('RageGoddess'));
+  }
+});
+
+test('lineOmen preserves Fagles verbatim apart from the single blank', () => {
+  // The displayed line must differ from the source ONLY where the blank stands.
+  // Rejoining on ' ' would eat the em-dash and silently alter a verbatim quote.
+  const src = EPI_BOOKS[0].data.meta.epigraph.text;
+  for (let s = 1; s <= 30; s++) {
+    const o = omens.lineOmen(EPI_BOOKS[0], EPI_BOOKS, seeded(s));
+    const line = o.q.split('<i>')[1].replace('</i>', '');
+    const answer = o.opts[o.correct];
+    assert.strictEqual(line.replace('____', answer), src, 'seed ' + s + ' altered the epigraph');
+    assert.ok(line.includes('Rage—Goddess') || line.includes('____'), 'em-dash must survive');
+  }
+});
+
+test('lineOmen distractors never appear in the displayed line', () => {
+  // Scope the check to the epigraph itself: the surrounding prompt says "Fagles
+  // wrote it thus", and a distractor must not false-fail on the word "wrote".
+  for (let s = 1; s <= 30; s++) {
+    const o = omens.lineOmen(EPI_BOOKS[0], EPI_BOOKS, seeded(s));
+    const line = o.q.split('<i>')[1].replace('</i>', '');
+    o.opts.forEach((w, i) => {
+      if (i === o.correct) return;
+      assert.ok(!line.includes(w), 'seed ' + s + ': distractor "' + w + '" is visible in the line');
+    });
+  }
+});
+
+test('lineOmen correct answer is the blanked word and truth cites the source', () => {
+  const o = omens.lineOmen(EPI_BOOKS[0], EPI_BOOKS, seeded(11));
+  assert.ok(o.truth.includes(o.opts[o.correct]));
+  assert.ok(o.truth.includes('Fagles'));
+});
+
+test('lineOmen returns null without an epigraph', () => {
+  assert.strictEqual(omens.lineOmen({ id: 'x', data: { meta: {} } }, EPI_BOOKS, seeded(1)), null);
+});
+
+test('lineOmen returns null when no other book can supply distractors', () => {
+  assert.strictEqual(omens.lineOmen(EPI_BOOKS[0], [EPI_BOOKS[0]], seeded(1)), null);
+});

@@ -125,7 +125,68 @@
     };
   }
 
-  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen, sequenceOmen };
+  /* Split on whitespace AND em/en dashes: "Rage—Goddess" is two words, and a naive
+     strip of non-letters would fuse them into "RageGoddess". Trailing/leading
+     punctuation is shaved; internal hyphens ("chariot-driven") survive. */
+  const DASHES = /[\s—–]+/;
+  const tokenize = t => t.split(DASHES)
+    .map(w => w.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''))
+    .filter(Boolean);
+
+  /* Function words make dull prompts: "which word is missing? their" */
+  const STOP = new Set(['their', 'there', 'those', 'these', 'which', 'would', 'could', 'should', 'about', 'whole', 'through']);
+  const isCandidate = w => w.length >= 5 && !STOP.has(w.toLowerCase());
+
+  function lineOmen(book, allBooks, rng) {
+    const ep = book.data && book.data.meta && book.data.meta.epigraph;
+    if (!ep || !ep.text) return null;
+
+    /* Split with a CAPTURING group so separators survive in the array. Rejoining on
+       ' ' would turn Fagles' em-dash into a space, silently altering a verbatim
+       quotation. Even indices are tokens, odd are the exact separators that stood
+       between them. */
+    const parts = ep.text.split(/([\s—–]+)/);
+    const isSep = s => /^[\s—–]+$/.test(s);
+    const cands = parts
+      .map((w, i) => ({ i, raw: w, clean: w.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '') }))
+      .filter(x => !isSep(x.raw) && isCandidate(x.clean));
+    if (!cands.length) return null;
+
+    const pick = cands[Math.floor(rng() * cands.length)];
+
+    const visible = new Set(tokenize(ep.text).map(w => w.toLowerCase()));
+    const foreign = [];
+    const seen = new Set();
+    allBooks.forEach(b => {
+      if (b.id === book.id) return;
+      const t = b.data && b.data.meta && b.data.meta.epigraph;
+      if (!t || !t.text) return;
+      tokenize(t.text).forEach(w => {
+        const lw = w.toLowerCase();
+        if (!isCandidate(w) || visible.has(lw) || seen.has(lw)) return;
+        seen.add(lw);
+        foreign.push(w);
+      });
+    });
+    if (foreign.length < 3) return null;
+
+    const distract = shuffle(foreign, rng).slice(0, 3);
+    const choices = shuffle([pick.clean].concat(distract), rng);
+
+    const shown = parts.slice();
+    shown[pick.i] = pick.raw.replace(pick.clean, '____');
+
+    return {
+      format: 'choice',
+      kind: 'meaning',
+      q: 'Fagles wrote it thus. Which word is missing?<br><i>' + shown.join('') + '</i>',
+      opts: choices,
+      correct: choices.indexOf(pick.clean),
+      truth: '<b>' + pick.clean + '</b> — ' + (ep.src || '')
+    };
+  }
+
+  const api = { isKinshipEpithet, bandOf, shuffle, epithetPool, epithetOmen, sequenceOmen, lineOmen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LOOM_OMENS = api;
 })(this);
