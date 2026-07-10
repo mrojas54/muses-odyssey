@@ -114,6 +114,19 @@
   .thread .lk:disabled{opacity:.45; cursor:default; color:var(--soft);}
   .thread .from{font-size:12px; color:var(--soft); font-style:italic; margin-bottom:8px;}
 
+  /* the day's measure */
+  .rite{background:var(--card); border:1px solid var(--line); border-radius:10px;
+        padding:14px 16px; margin:14px 0 6px;}
+  .rite .hd{font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--wine);}
+  .rite .goal{font-size:17px; margin:6px 0 2px;}
+  .rite .goal b{color:var(--wine);}
+  .rite .meta{font-size:13px; color:var(--soft); font-style:italic;}
+  .rite .streak{font-size:13px; color:var(--gold); margin-top:4px;}
+  .rite .door{font-size:13px; color:var(--soft); margin-top:4px;}
+  .rite .adj{background:none; border:1px solid var(--line); color:var(--soft);
+             border-radius:6px; min-width:34px; min-height:34px; font:inherit; cursor:pointer;}
+  .rite .adj:active{background:var(--parch2);}
+
   /* quiz */
   .divider{text-align:center; color:var(--gold); letter-spacing:6px; margin:34px 0 26px; font-size:16px;}
   .gate{text-align:center; margin-bottom:8px;}
@@ -331,6 +344,43 @@ function boot(){
 }
 
 /* ---- HOME ---- */
+/* Lachesis allots the measure; Atropos waits at the door. The pace line counts
+   only books that are authored and unread, so unwritten future books do not
+   inflate the day's burden. */
+function bumpGoal(delta){ setGoalBooks(goalBooks() + delta); showHome(); }
+
+function riteCard(){
+  const goal = goalBooks();
+  const done = booksDoneToday();
+  const left = ORDER.filter(id => authored(id) && !isRead(id)).length;
+  const days = LOOM_CLOCK.daysUntil(DEADLINE);
+
+  let h = `<div class="rite"><div class="hd">The day's measure</div>`;
+  h += `<div class="goal"><b>${done}</b> of <b>${goal}</b> book${goal===1?'':'s'} today`;
+  h += ` <button class="adj" onclick="bumpGoal(-1)" aria-label="fewer books">-</button>`;
+  h += ` <button class="adj" onclick="bumpGoal(1)" aria-label="more books">+</button></div>`;
+  h += done >= goal
+    ? `<div class="meta">The thread is spun. The day is kept.</div>`
+    : `<div class="meta">A book is kept when it is read and its omens hold.</div>`;
+
+  if(durable()){
+    const s = readStreak();
+    const c = s ? s.count : 0;
+    h += c > 0
+      ? `<div class="streak">✦ ${c} day${c===1?'':'s'} unbroken</div>`
+      : `<div class="streak">✦ the thread waits to be spun</div>`;
+  }else{
+    h += `<div class="meta">This copy cannot keep a streak — open it from the web to have the Fates remember.</div>`;
+  }
+
+  if(days > 0 && left > 0){
+    h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · ${left} book${left===1?'':'s'} on the loom, unread</div>`;
+  }else if(days > 0){
+    h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · every written book is read</div>`;
+  }
+  return h + `</div>`;
+}
+
 function showHome(){
   current=null;
   localStorage.removeItem('loom.last');
@@ -344,6 +394,7 @@ function showHome(){
   const castN = castCount();
   h += `<div class="progress">${authoredAll} of 48 books on the loom · ${readAll} read</div>`;
   h += `<div class="progbar"><i style="width:${(authoredAll/48*100).toFixed(1)}%"></i></div>`;
+  h += riteCard();
   if(examCount || threadCount || missCount || castN){
     h += `<div class="homeacts">`;
     if(examCount)   h += `<button onclick="showExam()">◈ The Grand Examination (${examCount}) →</button>`;
