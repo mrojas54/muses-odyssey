@@ -67,3 +67,35 @@ test('daysUntil absorbs a 25-hour fall-back day', () => {
   // Math.round(1.042) = 1, so naive Math.floor would regress.
   assert.strictEqual(clock.daysUntil('2026-11-02', '2026-11-01'), 1);
 });
+
+// --- the final-night countdown (absolute instants) ---
+const CURTAIN = Date.UTC(2026, 6, 15, 23, 30, 0);   // 2026-07-15 19:30 ET (EDT)
+
+test('timeLeft breaks the gap into h/m/s', () => {
+  const now = CURTAIN - ((3 * 3600 + 12 * 60 + 5) * 1000);
+  const t = clock.timeLeft(CURTAIN, now);
+  assert.deepStrictEqual({ past: t.past, h: t.h, m: t.m, s: t.s }, { past: false, h: 3, m: 12, s: 5 });
+});
+
+test('timeLeft flags the instant as past at and after the curtain', () => {
+  assert.strictEqual(clock.timeLeft(CURTAIN, CURTAIN).past, true);       // exact
+  assert.strictEqual(clock.timeLeft(CURTAIN, CURTAIN + 1000).past, true); // after
+  assert.strictEqual(clock.timeLeft(CURTAIN, CURTAIN - 1000).past, false);// before
+});
+
+test('countdownLabel shows hours and minutes when over an hour out', () => {
+  assert.strictEqual(clock.countdownLabel(CURTAIN, CURTAIN - ((3 * 3600 + 12 * 60) * 1000)), '3h 12m');
+});
+
+test('countdownLabel drops to minutes and seconds under an hour', () => {
+  assert.strictEqual(clock.countdownLabel(CURTAIN, CURTAIN - ((12 * 60 + 5) * 1000)), '12m 5s');
+});
+
+test('countdownLabel shows seconds only in the final minute', () => {
+  assert.strictEqual(clock.countdownLabel(CURTAIN, CURTAIN - 45000), '45s');
+});
+
+test('countdownLabel is null once the door has opened', () => {
+  assert.strictEqual(clock.countdownLabel(CURTAIN, CURTAIN), null);
+  assert.strictEqual(clock.countdownLabel(CURTAIN, CURTAIN + 60000), null);
+});

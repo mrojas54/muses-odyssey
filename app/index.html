@@ -275,6 +275,7 @@ const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringif
    The Daily Rite and the Grand Examination must NOT write this log. Only a
    per-book sitting can advance a day. */
 const DEADLINE = '2026-07-15';
+const DEADLINE_TS = Date.UTC(2026, 6, 15, 23, 30, 0);   // 7:30 PM ET (EDT, UTC-4) — the curtain
 const PASS_RATIO = 0.7;
 const dayKey = k => 'loom.day.' + k;
 
@@ -374,17 +375,45 @@ function boot(){
   if(last && authored(last)) showBook(last); else showHome();
 }
 
+/* The final-night ticker: while the home countdown is on screen, refresh it every
+   second so "Atropos arrives in Xh Ym" stays live. Null-safe on every other view;
+   when 7:30 PM ET passes with the door in view, re-render into "the door has opened". */
+setInterval(() => {
+  const el = document.querySelector('.door[data-countdown]');
+  if(!el) return;
+  const dr = doorText();
+  if(dr.live) el.textContent = dr.text;
+  else if(current === null) showHome();
+}, 1000);
+
 /* ---- HOME ---- */
 /* Lachesis allots the measure; Atropos waits at the door. The pace line counts
    only books that are authored and unread, so unwritten future books do not
    inflate the day's burden. */
 function bumpGoal(delta){ setGoalBooks(goalBooks() + delta); showHome(); }
 
+/* The Atropos line, shared by the first render and the live ticker below.
+   Far out → poetic day count; the final day → a ticking countdown to 7:30 PM ET;
+   after the curtain → the door has opened. */
+function doorText(){
+  const left = ORDER.filter(id => authored(id) && !isRead(id)).length;
+  const days = LOOM_CLOCK.daysUntil(DEADLINE);
+  if(days > 0){
+    return { live:false, text:`Atropos waits ${days} day${days===1?'':'s'} hence · ` +
+      (left>0 ? `${left} book${left===1?'':'s'} on the loom, unread` : 'every written book is read') };
+  }
+  const label = LOOM_CLOCK.countdownLabel(DEADLINE_TS);
+  if(label){
+    return { live:true, text:`Atropos arrives in ${label} · the theater door opens at 7:30 PM ET` +
+      (left>0 ? ` · ${left} unread` : '') };
+  }
+  return { live:false, text:`The theater door has opened · ` +
+    (left>0 ? `${left} book${left===1?'':'s'} unread` : 'every written book was read') };
+}
+
 function riteCard(){
   const goal = goalBooks();
   const done = booksDoneToday();
-  const left = ORDER.filter(id => authored(id) && !isRead(id)).length;
-  const days = LOOM_CLOCK.daysUntil(DEADLINE);
 
   let h = `<div class="rite"><div class="hd">The day's measure</div>`;
   h += `<div class="goal"><b>${done}</b> of <b>${goal}</b> book${goal===1?'':'s'} today`;
@@ -404,19 +433,8 @@ function riteCard(){
     h += `<div class="meta">This copy cannot keep a streak — open it from the web to have the Fates remember.</div>`;
   }
 
-  if(days > 0 && left > 0){
-    h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · ${left} book${left===1?'':'s'} on the loom, unread</div>`;
-  }else if(days > 0){
-    h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · every written book is read</div>`;
-  }else if(days === 0 && left > 0){
-    h += `<div class="door">Atropos is at the theater door tonight · ${left} book${left===1?'':'s'} still unread</div>`;
-  }else if(days === 0){
-    h += `<div class="door">Atropos is at the theater door tonight · every written book is read</div>`;
-  }else if(left > 0){
-    h += `<div class="door">The theater door has opened · ${left} book${left===1?'':'s'} unread</div>`;
-  }else{
-    h += `<div class="door">The theater door has opened · every written book was read</div>`;
-  }
+  const dr = doorText();
+  h += `<div class="door"${dr.live ? ' data-countdown="1"' : ''}>${dr.text}</div>`;
   return h + `</div>`;
 }
 
