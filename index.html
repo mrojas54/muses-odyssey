@@ -9804,7 +9804,7 @@ const saveMiss = (id,arr) => localStorage.setItem('loom.miss.'+id, JSON.stringif
 
    The Daily Rite and the Grand Examination must NOT write this log. Only a
    per-book sitting can advance a day. */
-const DEADLINE = '2026-07-28';
+const DEADLINE = '2026-07-15';
 const PASS_RATIO = 0.7;
 const dayKey = k => 'loom.day.' + k;
 
@@ -9938,6 +9938,14 @@ function riteCard(){
     h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · ${left} book${left===1?'':'s'} on the loom, unread</div>`;
   }else if(days > 0){
     h += `<div class="door">Atropos waits ${days} day${days===1?'':'s'} hence · every written book is read</div>`;
+  }else if(days === 0 && left > 0){
+    h += `<div class="door">Atropos is at the theater door tonight · ${left} book${left===1?'':'s'} still unread</div>`;
+  }else if(days === 0){
+    h += `<div class="door">Atropos is at the theater door tonight · every written book is read</div>`;
+  }else if(left > 0){
+    h += `<div class="door">The theater door has opened · ${left} book${left===1?'':'s'} unread</div>`;
+  }else{
+    h += `<div class="door">The theater door has opened · every written book was read</div>`;
   }
   return h + `</div>`;
 }
