@@ -345,9 +345,15 @@ function recordDay(kind, id){
     'iliad-09':6, 'iliad-10':6, 'iliad-11':4, 'iliad-12':4,
     'iliad-13':4, 'iliad-14':4, 'iliad-15':4, 'iliad-16':4,
     'iliad-17':4, 'iliad-18':4, 'iliad-19':4, 'iliad-20':4,
-    'iliad-21':4, 'iliad-22':4, 'iliad-23':4, 'iliad-24':4
+    'iliad-21':4, 'iliad-22':4, 'iliad-23':4, 'iliad-24':4,
+    'odyssey-01':6, 'odyssey-02':6, 'odyssey-03':7, 'odyssey-04':6,
+    'odyssey-05':6, 'odyssey-06':6, 'odyssey-07':6, 'odyssey-08':6,
+    'odyssey-09':6, 'odyssey-10':6, 'odyssey-11':6, 'odyssey-12':6,
+    'odyssey-13':6, 'odyssey-14':6, 'odyssey-15':6, 'odyssey-16':6,
+    'odyssey-17':6, 'odyssey-18':6, 'odyssey-19':6, 'odyssey-20':6,
+    'odyssey-21':6, 'odyssey-22':7, 'odyssey-23':6, 'odyssey-24':6
   };   // id → best score (= perfect)
-  const migration = 'loom.seed.iliad-24-complete.v1';
+  const migration = 'loom.seed.all-complete.v1';
   try {
     const shouldComplete = localStorage.getItem(migration)==null;
     for(const id in SEED){
